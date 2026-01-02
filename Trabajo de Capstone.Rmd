@@ -1,0 +1,62 @@
+---
+title: "Evaluación Capstone"
+author: "Nicolás Marchant"
+date: "2025-12-31"
+output: html_document
+---
+
+```{r}
+
+# Librerias
+library(dplyr)
+library(rio)
+library(skimr)
+
+# Semilla para reproducibilidad
+
+set.seed(123)
+
+# En la carpeta del capstone descargar "Base Publica ENPG 2024 (Stata 16).dta"
+# Cargar base de datos 
+
+ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta") 
+
+
+# Ver las variables 
+
+head(ENPG_2024)
+
+
+# Filtrar las variables correspondientes
+
+ENPG_filtrado <- ENPG_2024 %>% select(OH_1, OH_4, RESPONDENT_SERIAL,
+                                      DP_4, DP_5, DP_6, 
+                                      DP_8, DP_12, DP_16, 
+                                      MAR_1, MAR_4, PB_1, 
+                                      PB_4, COC_1, COC_4, 
+                                      TUS_1, TUS_4, EDAD, 
+                                      SEXO, T_PR_1_2, T_PR_1_3)
+
+# Cambio  de Nombres 
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    consumo_alcohol = case_when(
+      OH_4 == 1 ~ 1,                          # Consumió últimos 30 días
+      OH_4 %in% c(2, 3, 88, 99, NA) ~ 0,          # No consumió últimos 30 días
+      is.na(OH_4) & OH_1 == 1 ~ 1,            # Sin OH_4, pero consumo histórico
+      is.na(OH_4) & OH_1 == 2 ~ 0,            # Nunca ha consumido
+      OH_1 == NA ~ 0,
+      TRUE ~ NA_integer_
+    ),
+    
+    consumo_alcohol_lbl = case_when(
+      consumo_alcohol == 1 ~ "Sí",
+      consumo_alcohol == 0 ~ "No",
+      TRUE ~ NA_character_
+    )
+  )
+
+skim(ENPG_filtrado)
+```
+

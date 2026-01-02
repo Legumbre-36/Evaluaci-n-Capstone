@@ -1,0 +1,229 @@
+---
+title: "Evaluación Capstone"
+author: "Nicolás Marchant"
+date: "2025-12-31"
+output: html_document
+---
+
+
+# Librerias
+library(dplyr)
+library(rio)
+library(skimr)
+
+# Semilla para reproducibilidad
+
+set.seed(123)
+
+# En la carpeta del capstone descargar "Base Publica ENPG 2024 (Stata 16).dta"
+# Cargar base de datos 
+
+ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta") 
+
+
+#exploración de datos
+
+str(ENPG_2024)
+head(ENPG_2024)
+summary(ENPG_2024)
+glimpse(ENPG_2024)
+
+# Limpieza y transformación
+
+ENPG_filtrado <- ENPG_2024 %>% select(RESPONDENT_SERIAL, EDAD, SEXO, OH_1, OH_2, OH_4,
+                                      DP_4, DP_5, 
+                                      DP_8, DP_12, DP_16, 
+                                      MAR_1, MAR_4, PB_1, 
+                                      PB_4, COC_1, COC_4, 
+                                      TUS_1, TUS_4, T_PR_1_2, T_PR_1_3)
+
+
+head(ENPG_filtrado)
+
+
+#Creación variable de consumo (dependiente)
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    alcohol_30d = case_when(
+    OH_1 == 1 ~ 1, #HA CONSUMIDO ALCOHOL
+    OH_1 == 2 ~ 0, #NO HA CONSUMIDO ALCOHOL
+    OH_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    OH_4 == 2 ~ 0,
+    OH_4 == 3 ~ 0,
+    OH_1 == NA ~ 0,
+    OH_4 == NA ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (alcohol_30d =case_when(
+alcohol_30d == 1 ~ "Sí",
+alcohol_30d == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+skim(ENPG_filtrado)
+
+table(ENPG_filtrado$alcohol_30d)
+
+
+
+#independientes ()
+##1. Folio
+ENPG_filtrado <- ENPG_filtrado %>%
+rename(Folio = RESPONDENT_SERIAL)
+
+#Sociodemográficas
+##2. Edad
+ENPG_filtrado <- ENPG_filtrado%>%  
+  mutate(edad_recod =case_when(
+    EDAD %in% c(12:18)~ 1,
+    EDAD %in% c(19:25)~ 2,
+    EDAD %in% c(26:34)~ 3,
+    EDAD %in% c(35:44)~ 4,
+    EDAD %in% c(45:70)~ 5
+  )          )
+
+##3. Genero
+
+ENPG_filtrado <- ENPG_filtrado %>%
+mutate(genero = case_when(
+SEXO == 1 ~ "Masculino",
+SEXO %in% c(2:6, 99) ~ "Otro género"
+))
+
+##4. Pertenencia etnica
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(pueblo_ind = case_when(
+    DP_4 %in% 1:12 ~ "Indígena",
+    DP_4 == 13 ~ "No indígena",
+    TRUE ~ NA_character_
+  ))
+
+
+##5. Regilion
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(religion = case_when(
+    DP_5 %in% 1:11 ~ "Religión",
+    DP_5 == 12 ~ "No religión",
+    TRUE ~ NA_character_
+  ))
+
+
+##6. Nivel de escolaridad
+ENPG_filtrado <- ENPG_filtrado%>%  
+  mutate(escolaridad =case_when(
+    DP_12 %in% 1:4 ~ "Enseñanza básica o menos",
+    DP_12 %in% 5:8 ~ "Enseñanza media",
+    DP_12 %in% 9:13~ "Enseñanza superior o más",
+    DP_12 %in% 88 ~ "No sabe"
+  )          )
+
+##7. Nivel de Ingreso
+ENPG_filtrado <- ENPG_filtrado%>%  
+  mutate(Ingresos =case_when(
+    DP_16 %in% 1:5 ~ "500.000 o menos",
+    DP_16 %in% 6:7 ~ "Entre 500.001 y 1.000.000",
+    DP_16 %in% 8:10 ~ "Más de 1.000.000",
+    DP_16 %in% 88 ~ "No sabe",
+    DP_16 %in% 99 ~ "No contesta" 
+  )          )
+
+##Consumo de otras sustancias
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Consumo_mar = case_when(
+    MAR_1 == 1 ~ 1, #HA CONSUMIDO MARIHUANA
+    MAR_1 == 2 ~ 0, #NO HA CONSUMIDO MARIHUANA
+    MAR_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    MAR_4 == 2 ~ 0,
+    MAR_4 == 3 ~ 0,
+    MAR_1 == NA ~ 0,
+    MAR_4 == NA ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (Consumo_mar =case_when(
+Consumo_mar == 1 ~ "Sí",
+Consumo_mar == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Consumo_pb = case_when(
+    PB_1 == 1 ~ 1, #HA CONSUMIDO PASTA BASE
+    PB_1 == 2 ~ 0, #NO HA CONSUMIDO PASTA BASE
+    PB_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    PB_4 == 2 ~ 0,
+    PB_4 == 3 ~ 0,
+    PB_1 == NA ~ 0,
+    PB_4 == NA ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (Consumo_pb =case_when(
+Consumo_pb == 1 ~ "Sí",
+Consumo_pb == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Consumo_coc = case_when(
+    COC_1 == 1 ~ 1, #HA CONSUMIDO COCAINA
+    COC_1 == 2 ~ 0, #NO HA CONSUMIDO COCAINA
+    COC_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    COC_4 == 2 ~ 0,
+    COC_4 == 3 ~ 0,
+    COC_1 == NA ~ 0,
+    COC_4 == NA ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (Consumo_coc =case_when(
+Consumo_coc == 1 ~ "Sí",
+Consumo_coc == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Consumo_tus = case_when(
+    TUS_1 == 1 ~ 1, #HA CONSUMIDO TUSI
+    TUS_1 == 2 ~ 0, #NO HA CONSUMIDO TUSI
+    TUS_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    TUS_4 == 2 ~ 0,
+    TUS_4 == 3 ~ 0,
+    TUS_1 == NA ~ 0,
+    TUS_4 == NA ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (Consumo_tus =case_when(
+Consumo_tus == 1 ~ "Sí",
+Consumo_tus == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+rename (Riesgo_ocasion = T_PR_1_2,
+Riesgo_diario = T_PR_1_3)
+
+#Esta variable presenta 110 valores perdidos (No sabe/No responde)
+table(Base_consolidada$educ)
+
+
+
+#Renombrar variables
+#Limpieza de datos
+
+
+
+
+
+

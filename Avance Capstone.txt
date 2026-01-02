@@ -1,0 +1,18 @@
+Objetivo:
+
+Analizar el consumo de alcohol en la población, examinando su asociación con variables sociodemográficas, la percepción de riesgo del consumo y la presencia de consumo de otras sustancias, con el fin de identificar patrones y factores asociados relevantes para la formulación de políticas públicas.
+
+
+
+Metodología:
+El presente estudio se enmarca en un enfoque cuantitativo, utilizando información secundaria proveniente del Estudio Nacional de Drogas en Población General 2024, elaborado por el Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol (SENDA), el cual proporciona datos representativos a nivel nacional sobre patrones de consumo y características individuales de la población.
+
+El análisis de los datos se desarrollará utilizando herramientas y técnicas abordadas a lo largo del Diplomado en Data Science para Ciencias Sociales, incluyendo procesos de limpieza y preparación de datos, análisis descriptivo, exploración de relaciones entre variables y modelamiento estadístico. Este enfoque metodológico busca integrar el análisis estadístico con una comprensión sustantiva del fenómeno estudiado, aportando evidencia empírica que contribuya a la reflexión y toma de decisiones en el diseño de estrategias de prevención e intervención basadas en políticas públicas.
+
+Hipótesis de trabajo
+
+1. Existe una asociación significativa entre el género y el consumo de alcohol, siendo las personas de género masculino las que presentan un mayor consumo, respecto de los otros géneros de las personas encuestadas.
+
+2. Las personas que presentan una menor percepción de riesgo asociada al consumo de alcohol tienden a presentar mayores niveles de consumo, en comparación con aquellas que perciben un mayor riesgo.
+
+3. Existe una asociación significativa entre el consumo de alcohol y el consumo de otras drogas, de manera que quienes reportan consumo de alcohol presentan mayor probabilidad de consumo de otras sustancias psicoactivas.  (implicaría tb trabajar con los no consumidores)
