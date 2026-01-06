@@ -5,7 +5,7 @@ date: "2025-12-31"
 output: html_document
 ---
 
-
+```{r}
 # Librerias
 library(dplyr)
 library(rio)
@@ -20,7 +20,11 @@ set.seed(123)
 
 ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta") 
 
+```
 
+
+
+```{r}
 #exploración de datos
 
 str(ENPG_2024)
@@ -51,8 +55,8 @@ ENPG_filtrado <- ENPG_filtrado %>%
     OH_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     OH_4 == 2 ~ 0,
     OH_4 == 3 ~ 0,
-    OH_1 == NA ~ 0,
-    OH_4 == NA ~ 0)
+   is.na(OH_1) ~ 0,
+   is.na(OH_4) ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -67,6 +71,9 @@ skim(ENPG_filtrado)
 table(ENPG_filtrado$alcohol_30d)
 
 
+```
+
+```{r}
 
 #independientes ()
 ##1. Folio
@@ -102,7 +109,7 @@ ENPG_filtrado <- ENPG_filtrado %>%
   ))
 
 
-##5. Regilion
+##5. Religión
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(religion = case_when(
@@ -121,15 +128,15 @@ ENPG_filtrado <- ENPG_filtrado%>%
     DP_12 %in% 88 ~ "No sabe"
   )          )
 
-##7. Nivel de Ingreso
-ENPG_filtrado <- ENPG_filtrado%>%  
-  mutate(Ingresos =case_when(
-    DP_16 %in% 1:5 ~ "500.000 o menos",
-    DP_16 %in% 6:7 ~ "Entre 500.001 y 1.000.000",
-    DP_16 %in% 8:10 ~ "Más de 1.000.000",
-    DP_16 %in% 88 ~ "No sabe",
-    DP_16 %in% 99 ~ "No contesta" 
-  )          )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(educacion_med = case_when(
+    DP_12 %in% 5:13 ~ "Sí",
+    DP_12 %in% c(1:4, 88) ~ "No", 
+    T ~ NA_character_
+  ))
+
+
 
 ##Consumo de otras sustancias
 
@@ -141,8 +148,8 @@ ENPG_filtrado <- ENPG_filtrado %>%
     MAR_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     MAR_4 == 2 ~ 0,
     MAR_4 == 3 ~ 0,
-    MAR_1 == NA ~ 0,
-    MAR_4 == NA ~ 0)
+    is.na(MAR_1) ~ 0,
+    is.na(MAR_4) ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -160,8 +167,8 @@ ENPG_filtrado <- ENPG_filtrado %>%
     PB_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     PB_4 == 2 ~ 0,
     PB_4 == 3 ~ 0,
-    PB_1 == NA ~ 0,
-    PB_4 == NA ~ 0)
+    is.na(PB_1) ~ 0,
+    is.na(PB_4) ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -179,8 +186,8 @@ ENPG_filtrado <- ENPG_filtrado %>%
     COC_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     COC_4 == 2 ~ 0,
     COC_4 == 3 ~ 0,
-    COC_1 == NA ~ 0,
-    COC_4 == NA ~ 0)
+    is.na(COC_1) ~ 0,
+    is.na(COC_4) ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -198,8 +205,8 @@ ENPG_filtrado <- ENPG_filtrado %>%
     TUS_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     TUS_4 == 2 ~ 0,
     TUS_4 == 3 ~ 0,
-    TUS_1 == NA ~ 0,
-    TUS_4 == NA ~ 0)
+    is.na(TUS_1) ~ 0,
+    is.na(TUS_4) ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -214,16 +221,265 @@ ENPG_filtrado <- ENPG_filtrado %>%
 rename (Riesgo_ocasion = T_PR_1_2,
 Riesgo_diario = T_PR_1_3)
 
-#Esta variable presenta 110 valores perdidos (No sabe/No responde)
-table(Base_consolidada$educ)
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Riesgo_ocasion_rec = case_when(
+      Riesgo_ocasion == 88 ~ NA_real_,
+      TRUE ~ Riesgo_ocasion
+    ),
+    Riesgo_diario_rec = case_when(
+      Riesgo_diario == 88 ~ NA_real_,
+      TRUE ~ Riesgo_diario
+    )
+  )
 
+```
 
+```{r}
 
 #Renombrar variables
 #Limpieza de datos
+```
+
+
+```{r}
+# Para modelo Logit
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    genero = factor(genero),
+    pueblo_ind = factor(pueblo_ind),
+    religion = factor(religion),
+    educacion_med = factor(educacion_med),
+    Consumo_mar = factor(Consumo_mar),
+    Consumo_coc = factor(Consumo_coc),
+    Consumo_pb = factor(Consumo_pb),
+    Consumo_tus = factor(Consumo_tus),
+    EDAD = factor(EDAD),
+    Riesgo_diario_rec = factor(Riesgo_diario_rec),
+    Riesgo_ocasion_rec = factor(Riesgo_ocasion_rec)
+  )
+
+base_logit <- ENPG_filtrado %>% 
+  select(
+    alcohol_30d,
+    EDAD, genero, pueblo_ind, religion,
+    educacion_med,
+    Consumo_mar, Consumo_coc, Consumo_pb, Consumo_tus, Riesgo_diario_rec,
+    Riesgo_ocasion_rec
+  ) %>% 
+  na.omit()
+
+base_logit <- base_logit %>% 
+  mutate(
+    alcohol_30d = ifelse(alcohol_30d == "Sí", 1,
+                          ifelse(alcohol_30d == "No", 0, NA))
+  )
+
+
+modelo_logit <- glm(
+  alcohol_30d ~ EDAD + genero + pueblo_ind + religion +
+    educacion_med +
+    Consumo_mar + Consumo_coc + Consumo_pb + Consumo_tus +
+    Riesgo_diario_rec + Riesgo_ocasion_rec,
+  data = base_logit,
+  family = binomial(link = "logit"),
+  na.action = na.exclude
+)
 
 
 
+
+summary(modelo_logit)
+
+table(base_logit$alcohol_30d, useNA = "ifany")
+str(base_logit$alcohol_30d)
+
+```
+
+
+
+```{r}
+##Random Forest
+
+## Carga de datos
+
+base_rf <- ENPG_filtrado
+
+## preprocesamiento de datos
+#Transformar datos a factor previo a su procesamiento como RF
+
+#Variables Folio y Sexo no necesitan tranformación
+
+## 1. Variables que NO se transforman
+# Folio y EDAD se mantienen como numéricas / identificadores
+str(base_rf$Folio)
+str(base_rf$EDAD)
+
+#Variables sociodemográficas categóricas
+
+## Sexo (1 = Masculino, 2 = Femenino)
+base_rf$SEXO <- factor(base_rf$SEXO,
+                       levels = c(1, 2),
+                       labels = c("Masculino", "Femenino"))
+
+## Género
+base_rf$genero <- factor(base_rf$genero)
+
+## Pueblo indígena
+base_rf$pueblo_ind <- factor(base_rf$pueblo_ind)
+
+
+## Escolaridad (ordenable)
+base_rf$educacion_med <- factor(base_rf$educacion_med,
+                              ordered = TRUE)
+
+#Variables de consumo
+
+base_rf$Consumo_mar <- factor(base_rf$Consumo_mar,
+                              levels = c("No", "Sí"))
+
+base_rf$Consumo_coc <- factor(base_rf$Consumo_coc,
+                              levels = c("No", "Sí"))
+
+
+
+##variables de riesgo con factor ordenado
+
+base_rf$Riesgo_ocasion <- factor(base_rf$Riesgo_ocasion,
+                                 ordered = TRUE)
+
+base_rf$Riesgo_diario <- factor(base_rf$Riesgo_diario,
+                                ordered = TRUE)
+
+##Edad por tramos
+
+base_rf$edad_recod <- factor(base_rf$edad_recod,
+                             ordered = TRUE)
+
+##Revisión de base pre procesada
+
+str(base_rf)
+summary(base_rf)
+
+
+##Selección de variables como predictoras del consumo, usaremos las variables sociodemográficas en esta elección, toda vez que pretendemos conocer las características sociales y demográficas asociadas a la ingesta de alcohol
+
+vars_pred <- c("edad_recod", "SEXO", "pueblo_ind",
+               "educacion_med")
+
+
+
+## Instalar y cargar paquetes
+if(!require(randomForest)) install.packages("randomForest")
+if(!require(caret)) install.packages("caret")
+
+library(randomForest)
+library(caret)
+
+# Seleccin de columnas
+rf_data <- base_rf[, c("alcohol_30d", vars_pred)]
+
+# Imputamos valores faltantes
+
+##Para variables categóricas: reemplazamos NA por la categoría más frecuente
+for(col in vars_pred){
+  if(is.factor(rf_data[[col]])){
+    most_common <- levels(rf_data[[col]])[which.max(table(rf_data[[col]]))]
+    rf_data[[col]][is.na(rf_data[[col]])] <- most_common
+  }
+}
+
+## Para variables numéricas: reemplaza NA por la mediana
+for(col in vars_pred){
+  if(is.numeric(rf_data[[col]])){
+    rf_data[[col]][is.na(rf_data[[col]])] <- median(rf_data[[col]], na.rm = TRUE)
+  }
+}
+
+# Revisión de presencia de NA
+sapply(rf_data, function(x) sum(is.na(x)))
+
+# Convertir alcohol_30d en factor
+rf_data$alcohol_30d <- factor(rf_data$alcohol_30d, levels = c("No", "Sí"))
+
+# División de datos de entrenamiento y prueba
+set.seed(123)
+trainIndex <- createDataPartition(rf_data$alcohol_30d, p = 0.7, list = FALSE)
+
+trainData <- rf_data[trainIndex, ]
+testData  <- rf_data[-trainIndex, ]
+
+# Construir la fórmula desde vars_pred (variables independientes)
+formula_rf <- as.formula(
+  paste("alcohol_30d ~", paste(vars_pred, collapse = " + "))
+)
+
+# Ajuste del modelo Random Forest
+set.seed(123)
+rf_model <- randomForest(
+  formula_rf,
+  data = trainData,
+  ntree = 500,
+  mtry = floor(sqrt(length(vars_pred))),
+  importance = TRUE
+)
+
+# Revisar el modelo entrenado
+print(rf_model)
+
+#De los resultados obtenidos, se aprecia un error rate de 28.81%, lo que implica que en el 71.19% de las veces
+#el modelo predice correctamente el consumo de alcohol en el conjunto de entrenamiento
+#Con respecto a la matriz de confusión, el modelo exhibe problemas para predecir los no consumidores, toda vez que presenta un error del 84%;sin embargo, en la predicción de los consumidores de alcohol funciona de mejor forma, con un error del 2.47% aprox. En resumen, el modelo fue capaz de predecir correctamente 8625 casos de consumidores y 664 casos de no consumidores. No obstante, clasificó de forma errónea 3541 casos de no consumidores y 219 casos de consumidores, concluyendo que el modelo resulta más preciso en la identificación de factores asociados al consumo, pero evidencia dificultades en la detección de quienes no consumirán alcohol.
+
+
+## Predicciones en conjunto de prueba
+pred_test <- predict(rf_model, newdata = testData)
+
+# Evaluación del desempeño
+confusionMatrix(pred_test, testData$alcohol_30d)
+
+
+#En complemento a lo señalado precentemente, el modelo en la precisión global acierta en aprox. el 71% de las veces
+#Presenta una sensivity del 15%, toda vez que la predicción de los no consumidores no es buena
+#Presenta una specifity del 97%, en tanto el modelo predice muy bien a los consumidores
+
+
+
+#Importancia de variables 
+varImpPlot(rf_model)
+importance(rf_model)
+
+#los resultados dan cuenta que, de las variables seleccionadas, las de mayor relevancia para predecir el consumo, estan asociadas a la Edad y el nivel de escolaridad, seguida por sexo y pueblo originario, en el caso de consumidores también adquiere relevancia la pertenencia indígena y se estima que las variables relgión e ingresos no son determinantes en la población objeto de estudio.
+
+#Curva de ROC
+
+# Cargar paquete y librería
+if(!require(pROC)) install.packages("pROC")
+
+library(pROC)
+
+
+# Obtener probabilidades en lugar de clases
+pred_probs <- predict(rf_model, testData, type = "prob")
+
+head(pred_probs)
+
+
+#para la curva de ROC usaremos la probabilidad de clase positiva (si)
+
+prob_si <- pred_probs[, "Sí"]
+
+# Calcular curva ROC
+roc_curve <- roc(testData$alcohol_30d, prob_si, levels = c("No", "Sí"), direction = "<")
+
+# Dibujar la curva
+plot(roc_curve, main="Curva ROC - Random Forest", col="blue", lwd=2)
+
+# Calcular el Área Bajo la Curva (AUC)
+auc_value <- auc(roc_curve)
+print(paste("Área bajo la curva (AUC):", round(auc_value, 3)))
+```
 
 
 
