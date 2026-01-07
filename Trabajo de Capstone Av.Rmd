@@ -1004,7 +1004,7 @@ print(rf_model)
 pred_test <- predict(rf_model, newdata = testData)
 
 # Evaluación del desempeño
-confusionMatrix(pred_test, testData$alcohol_30d)
+confusionMatrix(pred_test, testData$alcohol_30d, positive = "Sí")
 
 
 #En complemento a lo señalado precentemente, el modelo en la precisión global acierta en aprox. el 71% de las veces
