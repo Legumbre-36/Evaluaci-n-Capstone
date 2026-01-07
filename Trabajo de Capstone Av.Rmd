@@ -5,11 +5,90 @@ date: "2025-12-31"
 output: html_document
 ---
 
+Título: Determinantes sociales, cognitivos y conductuales del consumo del alcohol en la población chilena
+
+1) Contexto:
+
+A nivel internacional, el consumo de alcohol constituye un problema relevante de salud pública por su magnitud y por los costos sociales asociados. Se estima que el alcohol es responsable de 3,3 millones de muertes anuales en el mundo (5,9% de todas las defunciones) y se vincula causalmente con más de 200 enfermedades y trastornos, aportando además una fracción significativa de la carga global de morbilidad y lesiones (SENDA & Ministerio de Salud, 2016). En el caso de las Américas el consumo promedio es más alto que en otras regiones y, en los últimos años, se han reportado aumentos de episodios de consumo excesivo (OPS, 2015), lo que refuerza la pertinencia de analizar los determinantes que sostienen estos patrones.
+
+En Chile, los determinantes del consumo de alcohol se articulan en torno a desigualdades sociodemográficas (edad/etapa del curso como aproximación al ciclo vital adolescente, género y condiciones socioeconómicas), además de factores de contexto como normas sociales, exposición a marketing y disponibilidad. La evidencia regional muestra que el daño asociado al alcohol se distribuye de manera inequitativa: grupos socioeconómicos más desfavorecidos tienden a experimentar mayores repercusiones sanitarias ante niveles comparables de consumo, y una fracción minoritaria de bebedores concentra una proporción desmesurada del volumen total consumido (OPS, 2015). 
+
+Así como los determinantes sociodemográficos, existen factores vinculados a percepciones, conductas y salud mental que resultan relevantes para comprender el consumo de alcohol y sus impactos. La literatura sugiere que el consumo de alcohol rara vez aparece de forma aislada, especialmente durante la adolescencia, cuando tiende a integrarse en patrones de policonsumo. Por ejemplo, un estudio chileno con adolescentes escolarizados encontró que el inicio precoz del consumo de alcohol se asocia con una mayor probabilidad de consumo reciente de otras sustancias y con la presencia de otros comportamientos de riesgo, lo que es consistente con la noción de “constelaciones” de conductas interrelacionadas (Vilugrón et al., 2022). Asimismo, el mismo estudio reporta asociaciones entre el consumo y variables psicosociales como insatisfacción con la vida, insatisfacción escolar y bajo apoyo familiar.
+
+Por otra parte, la percepción de riesgo opera como un determinante proximal relevante: cuando el consumo se evalúa como poco riesgoso, aumenta la probabilidad de iniciación y mantención, especialmente en contextos donde el alcohol se encuentra socialmente normalizado. En Chile, la medición en población escolar evidencia una marcada asimetría: el consumo ocasional presenta niveles bajos de percepción de “gran riesgo”, mientras que el consumo diario es evaluado como más peligroso por una proporción considerablemente mayor de estudiantes (SENDA, 2023).
+No obstante, los antecedentes citados refieren principalmente a población escolar. En este trabajo, por tanto, se buscará operacionalizar las variables antes mencionadas y examinar su asociación con el consumo de alcohol en población general, con el fin de evaluar en qué medida estos factores mantienen su relevancia más allá del contexto adolescente/escolar.
+
+2) Objetivo:
+
+El objetivo del estudio es estimar el efecto de factores sociodemográficos, percepción de riesgo, policonsumo de sustancias y salud mental sobre la probabilidad de consumo de alcohol en los últimos 30 días en Chile.
+
+
+3) Metodología
+
+El presente estudio se enmarca en un enfoque cuantitativo, utilizando información secundaria proveniente del Estudio Nacional de Drogas en Población General 2024, elaborado por el Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol (SENDA), el cual proporciona datos representativos a nivel nacional sobre patrones de consumo y características individuales de la población.
+
+El análisis de los datos se desarrollará utilizando herramientas y técnicas abordadas a lo largo del Diplomado en Data Science para Ciencias Sociales, incluyendo procesos de limpieza y preparación de datos, análisis descriptivo, exploración de relaciones entre variables y modelamiento estadístico. Este enfoque metodológico busca integrar el análisis estadístico con una comprensión sustantiva del fenómeno estudiado, aportando evidencia empírica que contribuya a la reflexión y toma de decisiones en el diseño de estrategias de prevención e intervención basadas en políticas públicas.
+
+Las variables consideradas para el análisis se presentan a continuación:
+
+Variable dependiente:
+Consumo de alcohol en los últimos 30 días, construida a partir de las variables:
+a) Ha consumido alcohol (OH_1)
+b) Consumió alcohol los últimos 30 días (OH_4)
+
+
+Variables independientes:
+
+La inclusión de variables independientes se estructuró en función de cuatro líneas temáticas:
+
+a) Sociodemográficos
+Edad (EDAD)
+Estado civil (DP_2)
+Pertenencia a un pueblo originario (DP_4)
+Adhiere a una religión (DP_5)
+Género (DP_8)
+Nivel de escolaridad (DP_12)
+Trabajó la semana pasada (CO_1)
+Cargo en el trabajo (CO_6)
+
+
+b) Consumo de otras sustancias los últimos 30 días
+
+Consumo de cigarrillos (ST_1/ST_4)
+Consumo de marihuana (MAR_1/MAR_4)
+Consumo de cocaína (COC_1/COC_4)
+Consumo de pasta base (PB_1/PB_4)
+Consumo de tusi (TUS_1/TUS_4)
+
+c) Salud mental
+Percepción de estado de salud general (ST_1)
+Habitualidad de problemas de salud mental: ¿Sus preocupaciones le han hecho perder mucho sueño? (T_SG_1_B)
+Habitualidad de problemas de salud mental: Y, ¿Se ha sentido constantemente agobiado/a o en tensión? (T_SG_1_E)
+Habitualidad de problemas de salud mental: ¿Ha sentido que no puede superar sus dificultades? (T_SG_1_F)
+Habitualidad de problemas de salud mental: ¿Se ha sentido poco feliz y deprimido/a? (T_SG_1_I)
+Habitualidad de problemas de salud mental: ¿Ha perdido confianza en sí mismo/a? (T_SG_1_J)
+Habitualidad de problemas de salud mental: ¿Ha pensado que usted es una persona que no vale para nada? (T_SG_1_K)
+
+
+d) Percepción de riesgo
+Toma tres o más tragos por ocasión (T_PR_1_2)
+Toma cinco o más tragos diariamente (T_PR_1_3)
+
+
+4) Carga de bases de datos
+
+En esta sección se realizará la carga de la base de datos que se utilizará en el estudio, junto con la importación de las librerías necesarias para este proceso.
+
 ```{r}
 # Librerias
 library(dplyr)
 library(rio)
 library(skimr)
+library(ggplot2)
+library(tidyverse)
+library(plotly)
+library(scales)
+library(forcats)
 
 # Semilla para reproducibilidad
 
@@ -22,10 +101,14 @@ ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta")
 
 ```
 
+5) Exploración, limpieza y transformación de los datos
 
+En esta sección se explorará la base de datos importada y, posteriormente, se realizará su limpieza con el fin de construir un data frame que incluya únicamente las variables que serán utilizadas en el análisis.
+
+A continuación, se recodificarán las variables que se incorporarán en los modelos, con el objetivo de favorecer la parsimonia en la interpretación, focalizar y organizar las variables de consumo, y asegurar que su codificación quede alineada con la información presentada en el capítulo de contexto.
 
 ```{r}
-#exploración de datos
+#Exploración de datos
 
 str(ENPG_2024)
 head(ENPG_2024)
@@ -48,7 +131,10 @@ ENPG_filtrado <- ENPG_2024 %>% select(RESPONDENT_SERIAL, EDAD, SEXO, OH_1, OH_2,
 head(ENPG_filtrado)
 
 
-#Creación variable de consumo (dependiente)
+#Creación variable de consumo de alcohol los últimos 30 días (dependiente)
+
+#Esta variable se construirá como un índice a partir de las preguntas “¿Ha consumido alcohol alguna vez en la vida?” y 
+#“¿Cuándo fue la última vez que consumió alcohol?”, delimitando el consumo al periodo de los últimos 30 días.
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -75,13 +161,17 @@ table(ENPG_filtrado$alcohol_30d)
 
 ```{r}
 
-#independientes ()
+#Variables independientes ()
+
+#En este apartado se realizarán las recodificaciones de las variables independientes.
+
 ##1. Folio
 ENPG_filtrado <- ENPG_filtrado %>%
 rename(Folio = RESPONDENT_SERIAL)
 
-#Sociodemográficas
-##2. Edad
+# Sociodemográficas
+
+##a) Edad
 ENPG_filtrado <- ENPG_filtrado%>%  
   mutate(edad_recod =case_when(
     EDAD %in% c(12:18)~ 1,
@@ -91,29 +181,12 @@ ENPG_filtrado <- ENPG_filtrado%>%
     EDAD %in% c(45:70)~ 5
   )          )
 
-##2.1 Estado civil
+##b) Estado civil
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   rename(estado_civil = DP_2)
 
-# 3. Si se encuentra trabajando
-
-ENPG_filtrado <- ENPG_filtrado %>% 
-  rename(trabaja_o_no = CO_1, cargo_trabajo = CO_6)
-
-##4. Genero
-
-ENPG_filtrado <- ENPG_filtrado %>%
-  mutate(
-    genero = case_when(
-      SEXO == 1 ~ "Masculino",
-      SEXO %in% c(2:6, 99) ~ "Otro género",
-      TRUE ~ NA_character_
-    ),
-    genero = factor(genero),
-    genero = relevel(genero, ref = "Otro género")  # <- aquí “inviertes” la referencia
-  )
-##5. Pertenencia etnica
+##c. Pertenencia a un grupo originario
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(pueblo_ind = case_when(
@@ -123,7 +196,7 @@ ENPG_filtrado <- ENPG_filtrado %>%
   ))
 
 
-##6. Religión
+##d. Adhiere a una religión
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(religion = case_when(
@@ -132,8 +205,22 @@ ENPG_filtrado <- ENPG_filtrado %>%
     TRUE ~ NA_character_
   ))
 
+##e) Género
 
-##7. Nivel de escolaridad
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    genero = case_when(
+      SEXO == 1 ~ "Masculino",
+      SEXO %in% c(2:6, 99) ~ "Otro género",
+      TRUE ~ NA_character_
+    ),
+    genero = factor(genero),
+    genero = relevel(genero, ref = "Otro género") 
+  )
+
+
+##f) Nivel de escolaridad
+
 ENPG_filtrado <- ENPG_filtrado%>%  
   mutate(escolaridad =case_when(
     DP_12 %in% 1:4 ~ "Enseñanza básica o menos",
@@ -145,14 +232,23 @@ ENPG_filtrado <- ENPG_filtrado%>%
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(educacion_med = case_when(
-    DP_12 %in% 5:13 ~ "Sí",
-    DP_12 %in% c(1:4, 88) ~ "No", 
-    T ~ NA_character_
+    DP_12 %in% 5:13 ~ "Tiene educación media o superior",
+    DP_12 %in% c(1:4, 88) ~ "No tiene educación media o superior", 
+    TRUE ~ NA_character_
   ))
 
 
+# g) Trabajó la semana pasada/Cargo trabajo (renombrando variables)
 
-##Consumo de otras sustancias
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(trabaja_o_no = CO_1, cargo_trabajo = CO_6)
+
+
+##Consumo de otras sustancias (construcción de variables)
+
+
+# a) Consumo de cigarrillos
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -171,6 +267,9 @@ ENPG_filtrado <- ENPG_filtrado %>%
     TRUE ~ NA_character_
   ))
 
+
+# b) Consumo de marihuana
+
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     Consumo_mar = case_when(
@@ -186,6 +285,26 @@ Consumo_mar == 1 ~ "Sí",
 Consumo_mar == 0 ~ "No",
 TRUE ~ NA_character_
 ))
+
+# b) Consumo de cocaína
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
+    Consumo_coc = case_when(
+    COC_1 == 2 ~ 0, #NO HA CONSUMIDO COCAINA
+    COC_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
+    COC_4 == 2 ~ 0,
+    COC_4 == 3 ~ 0)
+    )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+mutate (Consumo_coc =case_when(
+Consumo_coc == 1 ~ "Sí",
+Consumo_coc == 0 ~ "No",
+TRUE ~ NA_character_
+))
+
+# c) Consumo de pasta base
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -203,21 +322,8 @@ Consumo_pb == 0 ~ "No",
 TRUE ~ NA_character_
 ))
 
-ENPG_filtrado <- ENPG_filtrado %>% 
-  mutate(
-    Consumo_coc = case_when(
-    COC_1 == 2 ~ 0, #NO HA CONSUMIDO COCAINA
-    COC_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
-    COC_4 == 2 ~ 0,
-    COC_4 == 3 ~ 0)
-    )
 
-ENPG_filtrado <- ENPG_filtrado %>% 
-mutate (Consumo_coc =case_when(
-Consumo_coc == 1 ~ "Sí",
-Consumo_coc == 0 ~ "No",
-TRUE ~ NA_character_
-))
+# b) Consumo de tusi
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -236,6 +342,30 @@ TRUE ~ NA_character_
 ))
 
 
+## Salud mental y general
+
+# a) Salud General
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(salud_general = ST_1) 
+
+
+ENPG_filtrado <- ENPG_filtrado %>%  
+  mutate(salud_general = case_when(
+    salud_general == 88 ~ NA,
+    salud_general == 99 ~ NA,
+    TRUE ~ salud_general
+  ))
+
+# b) Salud Mental: 
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(sm_sueno = T_SG_1_B, sm_agobiado = T_SG_1_E, 
+         sm_frustracion = T_SG_1_F, sm_depresion = T_SG_1_I, 
+         sm_confianza = T_SG_1_J, sm_valía_moral = T_SG_1_K)
+
+
+## Percepción de riesgo
+
 ENPG_filtrado <- ENPG_filtrado %>% 
 rename (Riesgo_ocasion = T_PR_1_2,
 Riesgo_diario = T_PR_1_3)
@@ -252,33 +382,213 @@ ENPG_filtrado <- ENPG_filtrado %>%
     )
   )
 
-# Salud 
+```
 
-ENPG_filtrado <- ENPG_filtrado %>% 
-  rename(salud_general = ST_1) 
+6) Hipótesis de trabajo
+
+a)  Existe una asociación significativa entre el género y el consumo de alcohol, siendo las personas de género masculino las que presentan una mayor probabilidad de consumo, respecto de los otros géneros de las personas encuestadas.
+
+b)  Existe una asociación significativa entre el consumo de alcohol y el consumo de otras drogas, de manera que quienes reportan consumo de  sustancias psicoactivas, tienen mayor probabilidad de haber consumido alcohol los últimos 30 días.
+
+c) Las personas que presentan mayor habitualidad en problemas de salud mental tienen mayor probabilidad de reportar consumo de alcohol los últimos 30 días.
+
+d) Las personas que presentan una menor percepción de riesgo asociada al consumo de alcohol tienden a mayor probabilidad de consumo de alcohol, en comparación con aquellas que perciben un mayor riesgo.
+
+e) En el modelo Random Forest, las variables asociadas a policonsumo, percepción de riesgo y salud mental concentrarán la mayor importancia predictiva, en comparación con las variables sociodemográficas por sí solas.
 
 
-ENPG_filtrado <- ENPG_filtrado %>%  
-  mutate(salud_general = case_when(
-    salud_general == 88 ~ NA,
-    salud_general == 99 ~ NA,
-    TRUE ~ salud_general
-  ))
+7) Análisis descriptivo
 
-ENPG_filtrado <- ENPG_filtrado %>% 
-  rename(sm_sueno = T_SG_1_B, sm_agobiado = T_SG_1_E, 
-         sm_frustracion = T_SG_1_F, sm_depresion = T_SG_1_I, 
-         sm_confianza = T_SG_1_J, sm_valía_moral = T_SG_1_K)
+En primera instancia, se realizará un análisis descriptivo para caracterizar la distribución de las variables de interés y explorar su relación con el consumo de alcohol en los últimos 30 días, que corresponde a la variable principal del estudio. En particular, se examinará cómo se comportan las variables seleccionadas al comparar los grupos que reportan consumo reciente versus quienes no lo reportan.
 
+Para las variables nominales, se analizará su distribución en función del consumo de alcohol mediante gráficos de barras apiladas, lo que permitirá visualizar diferencias en la composición de categorías entre ambos grupos. En el caso de las variables numéricas u ordinales, se estimarán correlaciones con el consumo de alcohol (según corresponda al nivel de medición) y, adicionalmente, se utilizarán gráficos de caja para describir la dispersión y las diferencias en la distribución de estas variables entre personas que consumieron alcohol en los últimos 30 días y quienes no, facilitando la identificación de patrones, asimetrías y posibles valores atípicos relevantes para el análisis posterior.
+
+
+Consumo de alcohol según estado civil
+
+```{r}
+
+
+```
+
+
+Consumo de alcohol según pertenencia a un pueblo originario
+
+```{r}
+
+
+```
+
+Consumo de alcohol según adherencia a una religión
+
+```{r}
+
+
+```
+
+Consumo de alcohol según género
+
+```{r}
+
+
+```
+
+
+Distribución de escolaridad media según consumo de alcohol
+
+```{r}
+
+
+```
+
+
+Trabajo según consumo de alcohol
+
+```{r}
+
+
+
+```
+
+Cargo en el trabajo según consumo de alcohol
+
+```{r}
+
+
+# 1) Recodificación (solo para el gráfico)
+
+```
+
+
+Consumo de cigarrillos según consumo de alcohol
+
+```{r}
+
+
+```
+
+
+Consumo de marihuana según consumo de alcohol
+
+```{r}
+
+
+
+```
+
+
+Consumo de cocaína según consumo de alcohol
+
+```{r}
+
+```
+
+
+Consumo de pasta base según consumo de alcohol
+
+```{r}
+
+```
+
+Consumo de tusi según consumo de alcohol
+
+```{r}
+
+```
+
+Salud general según consumo de alcohol
+
+```{r}
+
+```
+
+Salud mental según consumo de alcohol
+
+```{r}
+# Media, Desviación Estandar y N° por grupo
+
+descriptivos_sm_alcohol <- ENPG_filtrado %>% 
+  select(alcohol_30d, starts_with("sm_")) %>% 
+  pivot_longer(
+    cols = starts_with("sm_"),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>% 
+  group_by(alcohol_30d, Variable) %>% 
+  summarise(
+    N = sum(!is.na(Valor)),
+    Media = mean(Valor, na.rm = TRUE),
+    DE = sd(Valor, na.rm = TRUE),
+    Mediana = median(Valor, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+descriptivos_sm_alcohol
+
+#  Tabla comparativa
+
+tabla_sm_alcohol <- descriptivos_sm_alcohol %>% 
+  pivot_wider(
+    names_from = alcohol_30d,
+    values_from = c(Media, DE, N),
+    names_glue = "{.value}_{alcohol_30d}"
+  )
+
+tabla_sm_alcohol
+
+# Gráfico de medias de salud mental según consumo de alcohol
+
+ENPG_filtrado %>% 
+  select(alcohol_30d, starts_with("sm_")) %>% 
+  pivot_longer(
+    cols = starts_with("sm_"),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>% 
+  filter(!is.na(alcohol_30d), !is.na(Valor)) %>% 
+  group_by(alcohol_30d, Variable) %>% 
+  summarise(
+    Media = mean(Valor, na.rm = TRUE),
+    SD = sd(Valor, na.rm = TRUE),
+    N = n(),
+    SE = SD / sqrt(N),
+    .groups = "drop"
+  ) %>% 
+  ggplot(aes(x = Variable, y = Media, fill = alcohol_30d)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(
+    aes(ymin = Media - 1.96 * SE, ymax = Media + 1.96 * SE),
+    position = position_dodge(width = 0.7),
+    width = 0.2
+  ) +
+  coord_flip() +
+  labs(
+    title = "Salud mental según consumo de alcohol (últimos 30 días)",
+    subtitle = "Media e intervalo de confianza 95%",
+    x = "",
+    y = "Media",
+    fill = "Consumo de alcohol"
+  ) +
+  theme_minimal()
 ```
 
 
 
 
+8) Análisis predictivo: Regresión Logística
+
+La regresión logística es especialmente útil para estudiar fenómenos como el consumo de alcohol porque, en este caso, la variable dependiente es dicotómica: solo puede tomar dos valores (haber consumido o no alcohol en los últimos 30 días). Este tipo de modelo permite estimar la probabilidad de que ocurra una de esas dos situaciones a partir de una o más variables explicativas, las cuales pueden ser numéricas o categóricas.
+
+
 ```{r}
 # Para modelo Logit
+# 1. Preprocesamiento y transformación de variables
 
-
+# En esta etapa se realiza la transformación de las variables
+# a sus formatos adecuados para la estimación del modelo Logit.
+# Las variables categóricas se convierten en factores, mientras
+# que las variables continuas (edad e indicadores de salud mental)
+# se mantienen como numéricas para capturar variaciones marginales.
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -307,6 +617,12 @@ ENPG_filtrado <- ENPG_filtrado %>%
     
   )
 
+# 2. Construcción de la base analítica del modelo
+
+# Se seleccionan exclusivamente las variables relevantes para
+# el análisis y se eliminan las observaciones con valores perdidos.
+# Esto asegura consistencia interna en la estimación del modelo.
+
 base_logit <- ENPG_filtrado %>% 
   select(
     alcohol_30d,
@@ -319,6 +635,14 @@ base_logit <- ENPG_filtrado %>%
   ) %>% 
   na.omit()
 
+# 3. Recodificación de la variable dependiente
+
+# La variable dependiente (consumo de alcohol en los últimos 30 días)
+# se recodifica en formato binario:
+# 1 = ha consumido alcohol
+# 0 = no ha consumido alcohol
+# Esta transformación es necesaria para la estimación del modelo Logit.
+
 base_logit <- base_logit %>% 
   mutate(
     alcohol_30d = ifelse(alcohol_30d == "Sí", 1,
@@ -327,6 +651,13 @@ base_logit <- base_logit %>%
     Riesgo_ocasion_rec = as.numeric(Riesgo_ocasion_rec)
   )
 
+# 4. Especificación y estimación del modelo logit
+
+# Se estima un modelo de regresión logística (familia binomial,
+# enlace logit), incorporando variables sociodemográficas,
+# consumo de otras sustancias, percepción de riesgo y salud mental.
+# El modelo permite estimar la probabilidad de consumo de alcohol
+# controlando por múltiples factores relevantes.
 
 modelo_logit <- glm(
   alcohol_30d ~ EDAD + genero + pueblo_ind + religion +
@@ -340,18 +671,120 @@ modelo_logit <- glm(
   na.action = na.exclude
 )
 
+# 5. Obtención e interpretación de Coeficientes
+
+# Los coeficientes del modelo se transforman a odds ratios
+# mediante su exponenciación. Valores mayores a 1 indican
+# mayor probabilidad de consumo de alcohol, mientras que
+# valores menores a 1 sugieren un efecto protector.
+
 coeficientes <- exp(modelo_logit$coefficients) 
 coeficientes
 
+# 6. Resumen del modelo
+
+# El resumen del modelo permite evaluar la significancia
+# estadística de cada predictor, así como la dirección
+# e intensidad de sus efectos.
+
 summary(modelo_logit)
+
+# 7. Verificación de la variable dependiente 
+
+# Se inspecciona la distribución y estructura de la variable
+# dependiente para confirmar su correcta codificación binaria
+# antes de la interpretación de resultados.
 
 table(base_logit$alcohol_30d, useNA = "ifany")
 str(base_logit$alcohol_30d)
 
 # Hacer curva Roc y el analisis de sensitividad (con la matriz de confusión) 
 
+# 8. Desempeño del modelo: Curva ROC y AUC
+
+
+# Se calcula la probabilidad predicha de consumo de alcohol
+# a partir del modelo Logit. Estas probabilidades se utilizan
+# para evaluar la capacidad discriminante del modelo.
+
+prob_pred_logit <- predict(modelo_logit, type = "response")
+
+
+# Curva ROC
+
+# La curva ROC (Receiver Operating Characteristic) evalúa la
+# capacidad del modelo para discriminar entre quienes consumen
+# y no consumen alcohol, considerando distintos puntos de corte.
+
+library(pROC)
+
+roc_logit <- roc(
+  response = base_logit$alcohol_30d,
+  predictor = prob_pred_logit
+)
+
+# Gráfico de la curva ROC
+
+plot(
+  roc_logit,
+  main = "Curva ROC – Modelo Logit (Consumo de alcohol 30 días)",
+  col = "blue",
+  lwd = 2
+)
+
+# Línea diagonal (clasificación aleatoria)
+
+abline(a = 0, b = 1, lty = 2, col = "gray")
+
+# Área bajo la curva (AUC)
+
+auc_logit <- auc(roc_logit)
+auc_logit
+
+# 9. Matriz de confusión
+
+# Se define un punto de corte estándar de 0.5 para clasificar
+# las probabilidades predichas en consumo (1) o no consumo (0).
+
+pred_clase <- ifelse(prob_pred_logit >= 0.5, 1, 0)
+
+# Matriz de confusión
+
+matriz_confusion <- table(
+  Observado = base_logit$alcohol_30d,
+  Predicho = pred_clase
+)
+
+matriz_confusion
+
+# Métricas derivadas de la matriz de confusión
+
+
+# Exactitud (accuracy)
+accuracy <- sum(diag(matriz_confusion)) / sum(matriz_confusion)
+
+# Sensibilidad (recall / tasa de verdaderos positivos)
+sensibilidad <- matriz_confusion["1", "1"] /
+  sum(matriz_confusion["1", ])
+
+# Especificidad (tasa de verdaderos negativos)
+especificidad <- matriz_confusion["0", "0"] /
+  sum(matriz_confusion["0", ])
+
+accuracy
+sensibilidad
+especificidad
 ```
 
+a) Interpretación
+
+El modelo de regresión logística, que evalúa el consumo de alcohol durante los últimos 30 días en función de distintas variables predictoras, permitió reconocer patrones relevantes entre los factores considerados. Entre los resultados más importantes, se destacan los siguientes:
+
+
+
+9) Análisis predictivo: Random forest
+
+Se emplea Random Forest porque es un método de aprendizaje automático supervisado que integra varios árboles de decisión para aumentar la exactitud y la consistencia de las predicciones. Resulta conveniente ya que disminuye el riesgo de sobreajuste, se desempeña bien con conjuntos de datos con numerosas variables y es resistente a la influencia de valores atípicos. Además, permite estimar qué tan relevantes son las distintas variables para explicar la predicción.
 
 
 ```{r}
@@ -617,6 +1050,21 @@ auc_value <- auc(roc_curve)
 print(paste("Área bajo la curva (AUC):", round(auc_value, 3)))
 
 ```
+
+10) Conclusiones
+
+
+
+Referencias 
+•	Organización Panamericana de la Salud. (2015). Situación regional del consumo de alcohol y la salud en las Américas: Resumen del informe [Hoja informativa]. OPS. Organización Panamericana de la Salud
+
+•	Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol. (2023). Décimo Cuarto Estudio Nacional de Drogas en Población Escolar de Chile 2021: 8º básico a 4º medio. Observatorio Chileno de Drogas, Ministerio del Interior y Seguridad Pública, Gobierno de Chile. SENDA
+
+•	Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol (SENDA) & Ministerio de Salud (MINSAL). (2016). El consumo de alcohol en Chile: Situación epidemiológica. https://www.senda.gob.cl/wp-content/uploads/media/estudios/otrosSENDA/2016_Consumo_Alcohol_Chile.pdf
+
+•	Vilugrón, F., Molina, T., Gras Pérez, M. E., & Font-Mayolas, S. (2022). Precocidad de inicio del consumo de sustancias psicoactivas y su relación con otros comportamientos de riesgo para la salud en adolescentes chilenos. Revista Médica de Chile, 150, 584–596. Revista Médica de Chile
+
+
 
 
 
