@@ -39,7 +39,10 @@ ENPG_filtrado <- ENPG_2024 %>% select(RESPONDENT_SERIAL, EDAD, SEXO, OH_1, OH_2,
                                       DP_8, DP_12, DP_16, 
                                       MAR_1, MAR_4, PB_1, 
                                       PB_4, COC_1, COC_4, 
-                                      TUS_1, TUS_4, T_PR_1_2, T_PR_1_3)
+                                      TUS_1, TUS_4, T_PR_1_2, T_PR_1_3, 
+                                      ST_1, ST_2, ST_5, T_SG_1_B, T_SG_1_E, 
+                                      T_SG_1_I, T_SG_1_J, T_SG_1_K, T_SG_1_F, 
+                                      CO_1, CO_6, DP_2)
 
 
 head(ENPG_filtrado)
@@ -50,13 +53,10 @@ head(ENPG_filtrado)
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     alcohol_30d = case_when(
-    OH_1 == 1 ~ 1, #HA CONSUMIDO ALCOHOL
     OH_1 == 2 ~ 0, #NO HA CONSUMIDO ALCOHOL
     OH_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     OH_4 == 2 ~ 0,
-    OH_4 == 3 ~ 0,
-   is.na(OH_1) ~ 0,
-   is.na(OH_4) ~ 0)
+    OH_4 == 3 ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -91,15 +91,29 @@ ENPG_filtrado <- ENPG_filtrado%>%
     EDAD %in% c(45:70)~ 5
   )          )
 
-##3. Genero
+##2.1 Estado civil
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(estado_civil = DP_2)
+
+# 3. Si se encuentra trabajando
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(trabaja_o_no = CO_1, cargo_trabajo = CO_6)
+
+##4. Genero
 
 ENPG_filtrado <- ENPG_filtrado %>%
-mutate(genero = case_when(
-SEXO == 1 ~ "Masculino",
-SEXO %in% c(2:6, 99) ~ "Otro género"
-))
-
-##4. Pertenencia etnica
+  mutate(
+    genero = case_when(
+      SEXO == 1 ~ "Masculino",
+      SEXO %in% c(2:6, 99) ~ "Otro género",
+      TRUE ~ NA_character_
+    ),
+    genero = factor(genero),
+    genero = relevel(genero, ref = "Otro género")  # <- aquí “inviertes” la referencia
+  )
+##5. Pertenencia etnica
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(pueblo_ind = case_when(
@@ -109,7 +123,7 @@ ENPG_filtrado <- ENPG_filtrado %>%
   ))
 
 
-##5. Religión
+##6. Religión
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(religion = case_when(
@@ -119,7 +133,7 @@ ENPG_filtrado <- ENPG_filtrado %>%
   ))
 
 
-##6. Nivel de escolaridad
+##7. Nivel de escolaridad
 ENPG_filtrado <- ENPG_filtrado%>%  
   mutate(escolaridad =case_when(
     DP_12 %in% 1:4 ~ "Enseñanza básica o menos",
@@ -142,14 +156,28 @@ ENPG_filtrado <- ENPG_filtrado %>%
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
+    Consumo_cigarros = case_when(
+      ST_2 == 2 ~ 0,
+      ST_5 == 1 ~ 1, 
+      ST_5 == 2 ~ 0,
+      ST_5 == 3 ~ 0
+    )
+  )
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(Consumo_cigarros = case_when(
+    Consumo_cigarros == 1 ~ "Sí",
+    Consumo_cigarros == 0 ~ "No",
+    TRUE ~ NA_character_
+  ))
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  mutate(
     Consumo_mar = case_when(
-    MAR_1 == 1 ~ 1, #HA CONSUMIDO MARIHUANA
     MAR_1 == 2 ~ 0, #NO HA CONSUMIDO MARIHUANA
     MAR_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     MAR_4 == 2 ~ 0,
-    MAR_4 == 3 ~ 0,
-    is.na(MAR_1) ~ 0,
-    is.na(MAR_4) ~ 0)
+    MAR_4 == 3 ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -162,13 +190,10 @@ TRUE ~ NA_character_
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     Consumo_pb = case_when(
-    PB_1 == 1 ~ 1, #HA CONSUMIDO PASTA BASE
     PB_1 == 2 ~ 0, #NO HA CONSUMIDO PASTA BASE
     PB_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     PB_4 == 2 ~ 0,
-    PB_4 == 3 ~ 0,
-    is.na(PB_1) ~ 0,
-    is.na(PB_4) ~ 0)
+    PB_4 == 3 ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -181,13 +206,10 @@ TRUE ~ NA_character_
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     Consumo_coc = case_when(
-    COC_1 == 1 ~ 1, #HA CONSUMIDO COCAINA
     COC_1 == 2 ~ 0, #NO HA CONSUMIDO COCAINA
     COC_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     COC_4 == 2 ~ 0,
-    COC_4 == 3 ~ 0,
-    is.na(COC_1) ~ 0,
-    is.na(COC_4) ~ 0)
+    COC_4 == 3 ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -200,13 +222,10 @@ TRUE ~ NA_character_
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     Consumo_tus = case_when(
-    TUS_1 == 1 ~ 1, #HA CONSUMIDO TUSI
     TUS_1 == 2 ~ 0, #NO HA CONSUMIDO TUSI
     TUS_4 == 1 ~ 1, #HA CONSUMIDO ULTIMOS 30D
     TUS_4 == 2 ~ 0,
-    TUS_4 == 3 ~ 0,
-    is.na(TUS_1) ~ 0,
-    is.na(TUS_4) ~ 0)
+    TUS_4 == 3 ~ 0)
     )
 
 ENPG_filtrado <- ENPG_filtrado %>% 
@@ -233,17 +252,33 @@ ENPG_filtrado <- ENPG_filtrado %>%
     )
   )
 
+# Salud 
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(salud_general = ST_1) 
+
+
+ENPG_filtrado <- ENPG_filtrado %>%  
+  mutate(salud_general = case_when(
+    salud_general == 88 ~ NA,
+    salud_general == 99 ~ NA,
+    TRUE ~ salud_general
+  ))
+
+ENPG_filtrado <- ENPG_filtrado %>% 
+  rename(sm_sueno = T_SG_1_B, sm_agobiado = T_SG_1_E, 
+         sm_frustracion = T_SG_1_F, sm_depresion = T_SG_1_I, 
+         sm_confianza = T_SG_1_J, sm_valía_moral = T_SG_1_K)
+
 ```
 
-```{r}
 
-#Renombrar variables
-#Limpieza de datos
-```
 
 
 ```{r}
 # Para modelo Logit
+
+
 
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
@@ -255,9 +290,21 @@ ENPG_filtrado <- ENPG_filtrado %>%
     Consumo_coc = factor(Consumo_coc),
     Consumo_pb = factor(Consumo_pb),
     Consumo_tus = factor(Consumo_tus),
-    EDAD = factor(EDAD),
+    Consumo_cigarros = factor(Consumo_cigarros),
+    EDAD = as.numeric(EDAD),
     Riesgo_diario_rec = factor(Riesgo_diario_rec),
-    Riesgo_ocasion_rec = factor(Riesgo_ocasion_rec)
+    Riesgo_ocasion_rec = factor(Riesgo_ocasion_rec),
+    trabaja_o_no = factor(trabaja_o_no),
+    cargo_trabajo = factor(cargo_trabajo),
+    salud_general = factor(salud_general),
+    estado_civil = factor(estado_civil),
+    sm_sueno = as.numeric(sm_sueno),
+    sm_agobiado = as.numeric(sm_agobiado),
+    sm_depresion = as.numeric(sm_depresion),
+    sm_confianza = as.numeric(sm_confianza),
+    sm_valía_moral = as.numeric(sm_valía_moral),
+    sm_frustracion = as.numeric(sm_frustracion)
+    
   )
 
 base_logit <- ENPG_filtrado %>% 
@@ -266,14 +313,18 @@ base_logit <- ENPG_filtrado %>%
     EDAD, genero, pueblo_ind, religion,
     educacion_med,
     Consumo_mar, Consumo_coc, Consumo_pb, Consumo_tus, Riesgo_diario_rec,
-    Riesgo_ocasion_rec
+    Riesgo_ocasion_rec, sm_sueno, sm_confianza, sm_agobiado, sm_depresion, 
+    sm_valía_moral, sm_frustracion, salud_general, estado_civil, 
+    Consumo_cigarros, cargo_trabajo, trabaja_o_no
   ) %>% 
   na.omit()
 
 base_logit <- base_logit %>% 
   mutate(
     alcohol_30d = ifelse(alcohol_30d == "Sí", 1,
-                          ifelse(alcohol_30d == "No", 0, NA))
+                          ifelse(alcohol_30d == "No", 0, NA)), 
+    EDAD = as.numeric(EDAD), Riesgo_diario_rec = as.numeric(Riesgo_diario_rec), 
+    Riesgo_ocasion_rec = as.numeric(Riesgo_ocasion_rec)
   )
 
 
@@ -281,19 +332,23 @@ modelo_logit <- glm(
   alcohol_30d ~ EDAD + genero + pueblo_ind + religion +
     educacion_med +
     Consumo_mar + Consumo_coc + Consumo_pb + Consumo_tus +
-    Riesgo_diario_rec + Riesgo_ocasion_rec,
+    Riesgo_diario_rec + Riesgo_ocasion_rec + sm_sueno + sm_confianza + sm_agobiado 
+  + sm_depresion + sm_valía_moral + sm_frustracion + salud_general + estado_civil + 
+    Consumo_cigarros + cargo_trabajo + trabaja_o_no,
   data = base_logit,
   family = binomial(link = "logit"),
   na.action = na.exclude
 )
 
-
-
+coeficientes <- exp(modelo_logit$coefficients) 
+coeficientes
 
 summary(modelo_logit)
 
 table(base_logit$alcohol_30d, useNA = "ifany")
 str(base_logit$alcohol_30d)
+
+# Hacer curva Roc y el analisis de sensitividad (con la matriz de confusión) 
 
 ```
 
@@ -318,6 +373,14 @@ str(base_rf$EDAD)
 
 #Variables sociodemográficas categóricas
 
+## Estado civil 
+
+base_rf$estado_civil <- factor(base_rf$estado_civil,
+                               levels =  c(1:6), 
+                               labels = c("Soltero/a", "Casado/a", 
+                                          "Divorciado/a", "Viudo/a", 
+                                          "Anulado/a", "Conviviente civil"))
+
 ## Sexo (1 = Masculino, 2 = Femenino)
 base_rf$SEXO <- factor(base_rf$SEXO,
                        levels = c(1, 2),
@@ -333,6 +396,10 @@ base_rf$pueblo_ind <- factor(base_rf$pueblo_ind)
 ## Escolaridad (ordenable)
 base_rf$educacion_med <- factor(base_rf$educacion_med,
                               ordered = TRUE)
+## Religion
+
+base_rf$religion <- factor(base_rf$religion) 
+                           
 
 #Variables de consumo
 
@@ -340,6 +407,15 @@ base_rf$Consumo_mar <- factor(base_rf$Consumo_mar,
                               levels = c("No", "Sí"))
 
 base_rf$Consumo_coc <- factor(base_rf$Consumo_coc,
+                              levels = c("No", "Sí"))
+
+base_rf$Consumo_cigarros <- factor(base_rf$Consumo_cigarros, 
+                                   levels = c("No", "Sí"))
+
+base_rf$Consumo_pb <- factor(base_rf$Consumo_pb,
+                             levels = c("No", "Sí"))
+
+base_rf$Consumo_tus <- factor(base_rf$Consumo_tus, 
                               levels = c("No", "Sí"))
 
 
@@ -357,6 +433,37 @@ base_rf$Riesgo_diario <- factor(base_rf$Riesgo_diario,
 base_rf$edad_recod <- factor(base_rf$edad_recod,
                              ordered = TRUE)
 
+# Salud 
+base_rf$salud_general <- factor(base_rf$salud_general, 
+                                ordered = TRUE)
+
+base_rf$sm_agobiado <- factor(base_rf$sm_agobiado, 
+                              ordered = TRUE)
+
+base_rf$sm_confianza <- factor(base_rf$sm_confianza, 
+                               ordered = T)
+
+base_rf$sm_depresion <- factor(base_rf$sm_depresion, 
+                               ordered = T)
+
+base_rf$sm_frustracion <- factor(base_rf$sm_frustracion, 
+                                 ordered = T)
+
+base_rf$sm_sueno <- factor(base_rf$sm_sueno, 
+                           ordered = T)
+
+base_rf$sm_valía_moral <- factor(base_rf$sm_valía_moral, 
+                                 ordered = T)
+
+# Trabajo 
+
+base_rf$trabaja_o_no <- factor(base_rf$trabaja_o_no, 
+                               levels = c(1,2),
+                               labels = c("Sí", "No"))
+
+base_rf$cargo_trabajo <- as.numeric(base_rf$cargo_trabajo)
+
+
 ##Revisión de base pre procesada
 
 str(base_rf)
@@ -365,8 +472,32 @@ summary(base_rf)
 
 ##Selección de variables como predictoras del consumo, usaremos las variables sociodemográficas en esta elección, toda vez que pretendemos conocer las características sociales y demográficas asociadas a la ingesta de alcohol
 
-vars_pred <- c("edad_recod", "SEXO", "pueblo_ind",
-               "educacion_med")
+vars_pred <- c(
+  "EDAD",
+  "estado_civil",
+  "SEXO",
+  "genero",
+  "pueblo_ind",
+  "educacion_med",
+  "religion",
+  "Consumo_mar",
+  "Consumo_coc",
+  "Consumo_cigarros",
+  "Consumo_pb",
+  "Consumo_tus",
+  "Riesgo_ocasion",
+  "Riesgo_diario",
+  "edad_recod",
+  "salud_general",
+  "sm_agobiado",
+  "sm_confianza",
+  "sm_depresion",
+  "sm_frustracion",
+  "sm_valía_moral",
+  "trabaja_o_no",
+  "cargo_trabajo"
+)
+
 
 
 
@@ -380,6 +511,7 @@ library(caret)
 # Seleccin de columnas
 rf_data <- base_rf[, c("alcohol_30d", vars_pred)]
 
+rf_data <- na.omit(rf_data)
 # Imputamos valores faltantes
 
 ##Para variables categóricas: reemplazamos NA por la categoría más frecuente
@@ -403,6 +535,7 @@ sapply(rf_data, function(x) sum(is.na(x)))
 # Convertir alcohol_30d en factor
 rf_data$alcohol_30d <- factor(rf_data$alcohol_30d, levels = c("No", "Sí"))
 
+
 # División de datos de entrenamiento y prueba
 set.seed(123)
 trainIndex <- createDataPartition(rf_data$alcohol_30d, p = 0.7, list = FALSE)
@@ -424,6 +557,7 @@ rf_model <- randomForest(
   mtry = floor(sqrt(length(vars_pred))),
   importance = TRUE
 )
+
 
 # Revisar el modelo entrenado
 print(rf_model)
@@ -476,9 +610,12 @@ roc_curve <- roc(testData$alcohol_30d, prob_si, levels = c("No", "Sí"), directi
 # Dibujar la curva
 plot(roc_curve, main="Curva ROC - Random Forest", col="blue", lwd=2)
 
+coords(roc_curve, treshold = "best")
+
 # Calcular el Área Bajo la Curva (AUC)
 auc_value <- auc(roc_curve)
 print(paste("Área bajo la curva (AUC):", round(auc_value, 3)))
+
 ```
 
 
