@@ -584,12 +584,6 @@ La regresión logística es especialmente útil para estudiar fenómenos como el
 # Para modelo Logit
 # 1. Preprocesamiento y transformación de variables
 
-# En esta etapa se realiza la transformación de las variables
-# a sus formatos adecuados para la estimación del modelo Logit.
-# Las variables categóricas se convierten en factores, mientras
-# que las variables continuas (edad e indicadores de salud mental)
-# se mantienen como numéricas para capturar variaciones marginales.
-
 ENPG_filtrado <- ENPG_filtrado %>% 
   mutate(
     genero = factor(genero),
@@ -618,10 +612,6 @@ ENPG_filtrado <- ENPG_filtrado %>%
   )
 
 # 2. Construcción de la base analítica del modelo
-
-# Se seleccionan exclusivamente las variables relevantes para
-# el análisis y se eliminan las observaciones con valores perdidos.
-# Esto asegura consistencia interna en la estimación del modelo.
 
 base_logit <- ENPG_filtrado %>% 
   select(
@@ -653,12 +643,6 @@ base_logit <- base_logit %>%
 
 # 4. Especificación y estimación del modelo logit
 
-# Se estima un modelo de regresión logística (familia binomial,
-# enlace logit), incorporando variables sociodemográficas,
-# consumo de otras sustancias, percepción de riesgo y salud mental.
-# El modelo permite estimar la probabilidad de consumo de alcohol
-# controlando por múltiples factores relevantes.
-
 modelo_logit <- glm(
   alcohol_30d ~ EDAD + genero + pueblo_ind + religion +
     educacion_med +
@@ -683,17 +667,11 @@ coeficientes
 
 # 6. Resumen del modelo
 
-# El resumen del modelo permite evaluar la significancia
-# estadística de cada predictor, así como la dirección
-# e intensidad de sus efectos.
 
 summary(modelo_logit)
 
 # 7. Verificación de la variable dependiente 
 
-# Se inspecciona la distribución y estructura de la variable
-# dependiente para confirmar su correcta codificación binaria
-# antes de la interpretación de resultados.
 
 table(base_logit$alcohol_30d, useNA = "ifany")
 str(base_logit$alcohol_30d)
@@ -702,10 +680,6 @@ str(base_logit$alcohol_30d)
 
 # 8. Desempeño del modelo: Curva ROC y AUC
 
-
-# Se calcula la probabilidad predicha de consumo de alcohol
-# a partir del modelo Logit. Estas probabilidades se utilizan
-# para evaluar la capacidad discriminante del modelo.
 
 prob_pred_logit <- predict(modelo_logit, type = "response")
 
@@ -780,11 +754,17 @@ a) Interpretación
 
 El modelo de regresión logística, que evalúa el consumo de alcohol durante los últimos 30 días en función de distintas variables predictoras, permitió reconocer patrones relevantes entre los factores considerados. Entre los resultados más importantes, se destacan los siguientes:
 
+El modelo de regresión logística permitió identificar factores asociados al consumo de alcohol en los últimos 30 días, mostrando un ajuste adecuado y una capacidad de discriminación moderada (AUC = 0,72). En términos de desempeño predictivo, el modelo presenta una exactitud del 69,7%, con alta especificidad (88,9%) y sensibilidad moderada-baja (33,0%), lo que indica mayor precisión para identificar a quienes no consumen alcohol.
+
+Los resultados evidencian que el género masculino incrementa significativamente la probabilidad de consumo, mientras que la edad y la pertenencia religiosa se asocian con una menor probabilidad. Asimismo, el consumo de otras sustancias presenta una relación fuerte y positiva con el consumo de alcohol, destacando marihuana, cocaína y cigarrillos, lo que sugiere la presencia de patrones de policonsumo.
+
+En relación con variables psicosociales, mayores niveles de problemas de sueño, agobio y frustración aumentan la probabilidad de consumo, mientras que una mayor valía moral actúa como factor protector. Por otra parte, una mayor percepción de riesgo ocasional se asocia con una menor probabilidad de consumo. Finalmente, la situación laboral y algunas categorías de salud general y cargo ocupacional muestran asociaciones significativas, lo que sugiere diferencias en los patrones de consumo según condiciones sociales y laborales.
 
 
 9) Análisis predictivo: Random forest
 
 Se emplea Random Forest porque es un método de aprendizaje automático supervisado que integra varios árboles de decisión para aumentar la exactitud y la consistencia de las predicciones. Resulta conveniente ya que disminuye el riesgo de sobreajuste, se desempeña bien con conjuntos de datos con numerosas variables y es resistente a la influencia de valores atípicos. Además, permite estimar qué tan relevantes son las distintas variables para explicar la predicción.
+
 
 
 ```{r}
@@ -995,29 +975,15 @@ rf_model <- randomForest(
 # Revisar el modelo entrenado
 print(rf_model)
 
-#De los resultados obtenidos, se aprecia un error rate de 28.81%, lo que implica que en el 71.19% de las veces
-#el modelo predice correctamente el consumo de alcohol en el conjunto de entrenamiento
-#Con respecto a la matriz de confusión, el modelo exhibe problemas para predecir los no consumidores, toda vez que presenta un error del 84%;sin embargo, en la predicción de los consumidores de alcohol funciona de mejor forma, con un error del 2.47% aprox. En resumen, el modelo fue capaz de predecir correctamente 8625 casos de consumidores y 664 casos de no consumidores. No obstante, clasificó de forma errónea 3541 casos de no consumidores y 219 casos de consumidores, concluyendo que el modelo resulta más preciso en la identificación de factores asociados al consumo, pero evidencia dificultades en la detección de quienes no consumirán alcohol.
-
-
 ## Predicciones en conjunto de prueba
 pred_test <- predict(rf_model, newdata = testData)
 
 # Evaluación del desempeño
 confusionMatrix(pred_test, testData$alcohol_30d, positive = "Sí")
 
-
-#En complemento a lo señalado precentemente, el modelo en la precisión global acierta en aprox. el 71% de las veces
-#Presenta una sensivity del 15%, toda vez que la predicción de los no consumidores no es buena
-#Presenta una specifity del 97%, en tanto el modelo predice muy bien a los consumidores
-
-
-
 #Importancia de variables 
 varImpPlot(rf_model)
 importance(rf_model)
-
-#los resultados dan cuenta que, de las variables seleccionadas, las de mayor relevancia para predecir el consumo, estan asociadas a la Edad y el nivel de escolaridad, seguida por sexo y pueblo originario, en el caso de consumidores también adquiere relevancia la pertenencia indígena y se estima que las variables relgión e ingresos no son determinantes en la población objeto de estudio.
 
 #Curva de ROC
 
@@ -1050,6 +1016,16 @@ auc_value <- auc(roc_curve)
 print(paste("Área bajo la curva (AUC):", round(auc_value, 3)))
 
 ```
+De los resultados obtenidos, se aprecia un error rate de 30.9%, lo que implica que el modelo acierta la predicción en un 69.1% de las veces. Con respecto a la matriz de confusión, los resultados evidencian una buena detección de los no consumidores, que alcanza a un 89,6%, siendo un modelo fuerte para descartar el consumo. Sin embargo, el punto crítico del modelo está en los falsos negativos (935 casos) que fueron clasificados como No consumidores. En cuanto a los consumidores, el modelo detectó correctamente 439 casos, sin embargo pesquisa 276 falsos positivos.
+
+Por otro lado, en cuanto a la precisión global del modelo, las métricas indican que acierta en aproximadamente el 69,9% de las veces, no obstante, esta se encuentra influenciada por la alta detección de los no consumidores, por lo que en cuanto al balance global, se acercaría a una predicción aproximada del 60,7%, presetando un desempeño moderado. Asimismo, en cuanto a la Especificidad (Specificity), respecto de los no consumidores, clasifica bien al 89,6%, tal como se señala previamente y respecto de la Sensitividad (Sensitivity), solo alcanza un 31,95%, no logrando capturar la complejidad del fenómeno del consumo de alcohol.
+
+Con respecto a la relevancia de las variables seleccionadas para la predicción del consumo,se aprecian  muy relevantes el Consumo de sustancias, como cigarrillos y marihuana, elementos que serían coincidentes con la hipótesis del policonsumo. Se evidencia, también, la relevancia de los estados asociados a salud mental y/o aspectos emocionales de los encuestados, siendo las variables de agobio, confianza en sí mismo, depresión y frustración, las que influyen en la variable independiente, como también una influencia en esta respecto de la percepción de riesgo del consumo, ya sea de tipo ocasional o diario. Finalmente, entre las variables demográficas hay una importancia en características como la edad, el cargo que se desempeña en el trabajo, el sexo/género y nivel educativo.
+
+El desempeño del modelo Random Forest fue evaluado mediante la curva ROC, obteniéndose un área bajo la curva (AUC) de 0.712. Este valor indica una capacidad de discriminación aceptable del modelo para diferenciar entre personas que consumieron y no consumieron alcohol en los últimos 30 días. En términos prácticos, el modelo asigna una mayor probabilidad de consumo al individuo consumidor en el 71.2% de los casos, lo que resulta coherente con la complejidad multifactorial del fenómeno analizado.Si bien la sensibilidad del modelo es moderada bajo el umbral estándar, el AUC (0,71) evidencia que el modelo captura adecuadamente patrones de riesgo asociados al consumo de alcohol, siendo una herramienta útil para análisis exploratorios y de priorización de riesgo.
+
+
+
 
 10) Conclusiones
 
