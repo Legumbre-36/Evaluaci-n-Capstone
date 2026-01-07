@@ -396,7 +396,6 @@ d) Las personas que presentan una menor percepción de riesgo asociada al consum
 
 e) En el modelo Random Forest, las variables asociadas a policonsumo, percepción de riesgo y salud mental concentrarán la mayor importancia predictiva, en comparación con las variables sociodemográficas por sí solas.
 
-
 7) Análisis descriptivo
 
 En primera instancia, se realizará un análisis descriptivo para caracterizar la distribución de las variables de interés y explorar su relación con el consumo de alcohol en los últimos 30 días, que corresponde a la variable principal del estudio. En particular, se examinará cómo se comportan las variables seleccionadas al comparar los grupos que reportan consumo reciente versus quienes no lo reportan.
@@ -409,29 +408,289 @@ Consumo de alcohol según estado civil
 ```{r}
 
 
+# Variable creada sólo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    estado_civil_plot = case_when(
+      estado_civil %in% c(1, "1") ~ "Soltero/a",
+      estado_civil %in% c(2, "2") ~ "Casado/a",
+      estado_civil %in% c(3, "3") ~ "Divorciado/a",
+      estado_civil %in% c(4, "4") ~ "Viudo/a",
+      estado_civil %in% c(5, "5") ~ "Anulado/a",
+      estado_civil %in% c(6, "6") ~ "Conviviente civil",
+      TRUE ~ NA_character_
+    ),
+    estado_civil_plot = factor(
+      estado_civil_plot,
+      levels = c("Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a", "Anulado/a", "Conviviente civil")
+    )
+  )
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_estado_civil <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(estado_civil_plot)) %>%
+  count(alcohol_30d_plot, estado_civil_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, estado_civil_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Estado civil: ", estado_civil_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+df_estado_civil %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+Grafico_estado_civil <- ggplot(df_estado_civil, aes(y = alcohol_30d_plot, x = Conteo, fill = estado_civil_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Estado civil según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Estado civil"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_estado_civil, tooltip = "text")
+
+
+
+
+
+
+
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, la mayor proporción corresponde a solteros/as (56,9%), seguida por casados/as (27,0%) y divorciados/as (7,9%). El 8,2% restante se distribuye entre viudos/as, anulados/as y convivientes civiles.
+
+En cambio, entre quienes sí consumen alcohol, predominan los/las solteros/as (60,4%), luego los/las casados/as (24,8%) y los/las divorciados/as (8,4%); el 6,4% restante se reparte entre viudos/as, anulados/as y convivientes civiles. 
+
+En términos comparativos, el consumo de alcohol se asocia con una mayor proporción de solteros/as y una menor proporción de casados/as, mientras que la proporción de divorciados/as se mantiene relativamente similar entre ambos grupos.
 
 
 Consumo de alcohol según pertenencia a un pueblo originario
 
 ```{r}
 
+# Datos para gráfico 
+
+df_pueblo <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(pueblo_ind_plot)) %>%
+  count(alcohol_30d_plot, pueblo_ind_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, pueblo_ind_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Pueblo originario: ", pueblo_ind_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo 
+
+df_pueblo %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_pueblo <- ggplot(df_pueblo, aes(y = alcohol_30d_plot, x = Conteo, fill = pueblo_ind_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Pertenencia a pueblo originario según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Pueblo originario"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_pueblo, tooltip = "text")
+
+
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 12,8% declara pertenecer a un pueblo originario, mientras que el 87,2% señala no pertenecer.
+
+Por su parte, entre quienes sí consumen alcohol, el 13,5% indica pertenecer a un pueblo originario y el 86,5% no pertenecer. En general, las diferencias entre ambos grupos son muy pequeñas, observándose una proporción apenas mayor de pertenencia a pueblo originario entre quienes consumen alcohol.
+
+
 
 Consumo de alcohol según adherencia a una religión
 
 ```{r}
 
+# Variable creada solo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    religion_plot = case_when(
+      DP_5 %in% 1:11 ~ "Adhiere a una religión",
+      DP_5 == 12     ~ "No adhiere a una religión",
+      TRUE           ~ NA_character_
+    ),
+    religion_plot = factor(
+      religion_plot,
+      levels = c("Adhiere a una religión", "No adhiere a una religión")
+    )
+  )
+
+# Datos para gráfico (100% apilado dentro de cada barra)
+
+df_religion <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(religion_plot)) %>%
+  count(alcohol_30d_plot, religion_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, religion_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Religión: ", religion_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_religion %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_religion <- ggplot(df_religion, aes(y = alcohol_30d_plot, x = Conteo, fill = religion_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Religión según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Religión"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_religion, tooltip = "text")
+
+
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 73,7% señala que adhiere a una religión, mientras que el 26,3% indica no adherir.
+
+En cambio, entre quienes sí consumen alcohol, el 66,0% declara adherir a una religión y el 34,0% no adherir. En comparación, se observa que en el grupo que consume alcohol hay una menor proporción de personas religiosas y una mayor proporción de personas que no adhieren a una religión.
+
+
 
 Consumo de alcohol según género
 
 ```{r}
 
+# Variable creada solo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    genero_plot = case_when(
+      SEXO == 1 ~ "Masculino",
+      SEXO %in% c(2:6, 99) ~ "Otro género",
+      TRUE ~ NA_character_
+    ),
+    genero_plot = factor(genero_plot),
+    genero_plot = relevel(genero_plot, ref = "Otro género")
+  )
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_genero <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(genero_plot)) %>%
+  count(alcohol_30d_plot, genero_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, genero_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Género: ", genero_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_genero %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+Grafico_genero <- ggplot(df_genero, aes(y = alcohol_30d_plot, x = Conteo, fill = genero_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Género según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Género"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_genero, tooltip = "text")
+
+
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 64,9% se identifica como otro género, mientras que el 35,1% corresponde a masculino.
+
+En cambio, entre quienes sí consumen alcohol, el 52,0% corresponde a masculino y el 48,0% a otro género. En comparación, se observa que en el grupo que consume alcohol hay una mayor proporción de personas masculinas, mientras que en el grupo que no consume alcohol predomina otro género.
+
 
 
 Distribución de escolaridad media según consumo de alcohol
@@ -439,7 +698,72 @@ Distribución de escolaridad media según consumo de alcohol
 ```{r}
 
 
+# Variable
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    educacion_med_plot = case_when(
+      DP_12 %in% 5:13       ~ "Tiene educación media o superior",
+      DP_12 %in% c(1:4, 88) ~ "No tiene educación media o superior",
+      TRUE                 ~ NA_character_
+    ),
+    educacion_med_plot = factor(
+      educacion_med_plot,
+      levels = c("Tiene educación media o superior", "No tiene educación media o superior")
+    )
+  )
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_educacion_med <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(educacion_med_plot)) %>%
+  count(alcohol_30d_plot, educacion_med_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, educacion_med_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Educación: ", educacion_med_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_educacion_med %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_educacion_med <- ggplot(df_educacion_med, aes(y = alcohol_30d_plot, x = Conteo, fill = educacion_med_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Educación media o superior según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Educación"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_educacion_med, tooltip = "text")
+
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 82,1% tiene educación media o superior, mientras que el 17,9% no la tiene.
+
+Por su parte, entre quienes sí consumen alcohol, el 90,9% presenta educación media o superior y el 9,1% no. En comparación, se observa que en el grupo que consume alcohol hay una mayor proporción de personas con educación media o superior y una menor proporción de quienes no la tienen.
 
 
 Trabajo según consumo de alcohol
@@ -447,17 +771,164 @@ Trabajo según consumo de alcohol
 ```{r}
 
 
+# Variable creada sólo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    trabaja_o_no_plot = case_when(
+      trabaja_o_no %in% c(1, "1") ~ "Sí trabaja",
+      trabaja_o_no %in% c(2, "2") ~ "No trabaja",
+      TRUE ~ NA_character_
+    ),
+    trabaja_o_no_plot = factor(trabaja_o_no_plot, levels = c("Sí trabaja", "No trabaja"))
+  )
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_trabaja <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(trabaja_o_no_plot)) %>%
+  count(alcohol_30d_plot, trabaja_o_no_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, trabaja_o_no_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Trabaja: ", trabaja_o_no_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_trabaja %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_trabaja <- ggplot(df_trabaja, aes(y = alcohol_30d_plot, x = Conteo, fill = trabaja_o_no_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Trabajo según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Trabajo"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_trabaja, tooltip = "text")
+
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 62,1% declara que sí trabaja, mientras que el 37,9% no trabaja.
+
+En cambio, entre quienes sí consumen alcohol, el 76,1% señala que sí trabaja y el 23,9% no trabaja. En comparación, se observa que en el grupo que consume alcohol hay una mayor proporción de personas que trabajan y una menor proporción de quienes no trabajan.
+
 
 Cargo en el trabajo según consumo de alcohol
 
 ```{r}
 
 
-# 1) Recodificación (solo para el gráfico)
+# Variable creada solo para el gráfico
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    cargo_trabajo_plot = case_when(
+      cargo_trabajo %in% c(1, "1") ~ "Patrón o empleador/a",
+      cargo_trabajo %in% c(2, "2") ~ "Trabajador/a por cuenta propia",
+      cargo_trabajo %in% c(3, "3") ~ "Empleado/a u obrero/a sector público",
+      cargo_trabajo %in% c(4, "4") ~ "Empleado/a u obrero/a empresas públicas",
+      cargo_trabajo %in% c(5, "5") ~ "Empleado/a u obrero/a sector privado",
+      cargo_trabajo %in% c(6, "6") ~ "Servicio doméstico puertas adentro",
+      cargo_trabajo %in% c(7, "7") ~ "Servicio doméstico puertas afuera",
+      cargo_trabajo %in% c(8, "8") ~ "F.F.A.A. y del Orden",
+      cargo_trabajo %in% c(9, "9") ~ "Familiar no remunerado",
+      TRUE ~ NA_character_
+    ),
+    cargo_trabajo_plot = factor(
+      cargo_trabajo_plot,
+      levels = c(
+        "Patrón o empleador/a",
+        "Trabajador/a por cuenta propia",
+        "Empleado/a u obrero/a sector público",
+        "Empleado/a u obrero/a empresas públicas",
+        "Empleado/a u obrero/a sector privado",
+        "Servicio doméstico puertas adentro",
+        "Servicio doméstico puertas afuera",
+        "F.F.A.A. y del Orden",
+        "Familiar no remunerado"
+      )
+    )
+  )
+
+# 3) Datos para gráfico: 100% apilado dentro de cada barra
+
+df_cargo_trabajo <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(cargo_trabajo_plot)) %>%
+  count(alcohol_30d_plot, cargo_trabajo_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, cargo_trabajo_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo: ", alcohol_30d_plot,
+      "<br>Cargo: ", cargo_trabajo_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_cargo_trabajo %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_cargo_trabajo <- ggplot(df_cargo_trabajo, aes(y = alcohol_30d_plot, x = Conteo, fill = cargo_trabajo_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Cargo en el trabajo según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Cargo en el trabajo"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "right"
+  )
+
+ggplotly(Grafico_cargo_trabajo, tooltip = "text")
+
+
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, la mayor proporción corresponde a empleados/as u obreros/as del sector privado (37,2%), seguido por trabajadores/as por cuenta propia (31,7%). Luego aparecen, con proporciones similares, empleados/as del sector público (9,6%) y empleados/as de empresas públicas (9,4%), mientras que patrón o empleador/a representa 4,1%. El porcentaje restante se distribuye en categorías con participación muy baja (servicio doméstico, F.F.A.A. y del Orden y familiar no remunerado).
+
+Por su parte, entre quienes sí consumen alcohol, predomina aún más la categoría empleado/a u obrero/a del sector privado (47,3%), seguida por trabajador/a por cuenta propia (26,9%). Luego se ubican empleado/a u obrero/a del sector público (9,6%) y empleado/a u obrero/a de empresas públicas (9,1%), mientras que patrón o empleador/a alcanza 3,6%; el resto se reparte en proporciones muy pequeñas en las demás categorías.
 
 
 Consumo de cigarrillos según consumo de alcohol
@@ -465,44 +936,495 @@ Consumo de cigarrillos según consumo de alcohol
 ```{r}
 
 
+# Variable solo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    Consumo_cigarros_plot = case_when(
+      str_to_lower(str_squish(as.character(Consumo_cigarros))) %in% c("sí", "si") ~ "Sí",
+      str_to_lower(str_squish(as.character(Consumo_cigarros))) == "no"            ~ "No",
+      TRUE ~ NA_character_
+    ),
+    Consumo_cigarros_plot = factor(Consumo_cigarros_plot, levels = c("Sí", "No"))
+  )
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+df_cigarros <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(Consumo_cigarros_plot)) %>%
+  count(alcohol_30d_plot, Consumo_cigarros_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, Consumo_cigarros_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo alcohol: ", alcohol_30d_plot,
+      "<br>Consumo cigarros: ", Consumo_cigarros_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_cigarros %>%
+  group_by(alcohol_30d_plot) %>%
+  summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+Grafico_cigarros <- ggplot(df_cigarros, aes(y = alcohol_30d_plot, x = Conteo, fill = Consumo_cigarros_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Consumo de cigarros según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Consumo de cigarros"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_cigarros, tooltip = "text")
+
+
+
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 16,7% declara que sí consume cigarros, mientras que el 83,3% señala que no consume.
+
+En cambio, entre quienes sí consumen alcohol, el 40,7% indica que sí consume cigarros y el 59,3% que no. En comparación, se observa que el consumo de alcohol se asocia con una mayor proporción de consumo de cigarros, aumentando desde 16,7% en quienes no consumen alcohol a 40,7% en quienes sí consumen.
 
 
 Consumo de marihuana según consumo de alcohol
 
 ```{r}
 
+# Variable solo para el gráfico 
 
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    mar_raw = str_to_lower(str_squish(as.character(Consumo_mar))),
+    Consumo_mar_plot = case_when(
+      mar_raw %in% c("sí","si","s","1","true","verdadero") ~ "Sí",
+      mar_raw %in% c("no","n","0","2","false","falso")     ~ "No",
+      str_detect(mar_raw, "^(sí|si)\\b")                   ~ "Sí",
+      str_detect(mar_raw, "^no\\b")                        ~ "No",
+      TRUE ~ NA_character_
+    ),
+    Consumo_mar_plot = factor(Consumo_mar_plot, levels = c("Sí", "No"))
+  )
+
+# Chequeo
+
+ENPG_filtrado %>% count(Consumo_mar_plot, sort = TRUE)
+
+# Datos para gráfico:  100% apilado dentro de cada barra
+df_marihuana <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(Consumo_mar_plot)) %>%
+  count(alcohol_30d_plot, Consumo_mar_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, Consumo_mar_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo alcohol: ", alcohol_30d_plot,
+      "<br>Consumo marihuana: ", Consumo_mar_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_marihuana %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_marihuana <- ggplot(df_marihuana, aes(y = alcohol_30d_plot, x = Conteo, fill = Consumo_mar_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Consumo de marihuana según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Consumo de marihuana"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_marihuana, tooltip = "text")
 
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, el 1,9% declara que sí consume marihuana, mientras que el 98,1% indica que no consume.
+
+En cambio, entre quienes sí consumen alcohol, el 10,8% señala que sí consume marihuana y el 89,2% que no. En comparación, se observa que el consumo de alcohol se asocia con una mayor proporción de consumo de marihuana, aumentando desde 1,9% en quienes no consumen alcohol a 10,8% en quienes sí consumen.
 
 
 Consumo de cocaína según consumo de alcohol
 
 ```{r}
 
+# Variable solo para el gráfico
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    coc_raw = str_to_lower(str_squish(as.character(Consumo_coc))),
+    Consumo_coc_plot = case_when(
+      coc_raw %in% c("sí","si","s","1","true","verdadero") ~ "Sí",
+      coc_raw %in% c("no","n","0","2","false","falso")     ~ "No",
+      str_detect(coc_raw, "^(sí|si)\\b")                   ~ "Sí",
+      str_detect(coc_raw, "^no\\b")                        ~ "No",
+      TRUE ~ NA_character_
+    ),
+    Consumo_coc_plot = factor(Consumo_coc_plot, levels = c("Sí", "No"))
+  )
+
+# Chequeo
+
+ENPG_filtrado %>% count(Consumo_coc_plot, sort = TRUE)
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_cocaina <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(Consumo_coc_plot)) %>%
+  count(alcohol_30d_plot, Consumo_coc_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, Consumo_coc_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo alcohol: ", alcohol_30d_plot,
+      "<br>Consumo cocaína: ", Consumo_coc_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_cocaina %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_cocaina <- ggplot(df_cocaina, aes(y = alcohol_30d_plot, x = Conteo, fill = Consumo_coc_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Consumo de cocaína según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Consumo de cocaína"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_cocaina, tooltip = "text")
+
+
+
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, prácticamente la totalidad no consume cocaína (100,0%), mientras que el consumo aparece como 0,0%.
+
+Por su parte, entre quienes sí consumen alcohol, el 99,4% declara no consumir cocaína y el 0,6% señala que sí consume. En general, el consumo de cocaína es muy bajo en ambos grupos, observándose una presencia levemente mayor entre quienes consumen alcohol.
 
 
 Consumo de pasta base según consumo de alcohol
 
 ```{r}
 
+# Variable solo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    pb_raw = str_to_lower(str_squish(as.character(Consumo_pb))),
+    Consumo_pb_plot = case_when(
+      pb_raw %in% c("sí","si","s","1","true","verdadero") ~ "Sí",
+      pb_raw %in% c("no","n","0","2","false","falso")     ~ "No",
+      str_detect(pb_raw, "^(sí|si)\\b")                   ~ "Sí",
+      str_detect(pb_raw, "^no\\b")                        ~ "No",
+      TRUE ~ NA_character_
+    ),
+    Consumo_pb_plot = factor(Consumo_pb_plot, levels = c("Sí", "No"))
+  )
+
+# Chequeo
+
+ENPG_filtrado %>% count(Consumo_pb_plot, sort = TRUE)
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_pasta_base <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(Consumo_pb_plot)) %>%
+  count(alcohol_30d_plot, Consumo_pb_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, Consumo_pb_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo alcohol: ", alcohol_30d_plot,
+      "<br>Consumo pasta base: ", Consumo_pb_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_pasta_base %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_pasta_base <- ggplot(df_pasta_base, aes(y = alcohol_30d_plot, x = Conteo, fill = Consumo_pb_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Consumo de pasta base según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Consumo de pasta base"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_pasta_base, tooltip = "text")
+
+
+
 ```
+
+En el grupo de personas que no consume alcohol en los últimos 30 días, prácticamente la totalidad declara no consumir pasta base (99,9%), mientras que el consumo aparece como 0,1%.
+
+En cambio, entre quienes sí consumen alcohol, el 99,5% señala no consumir pasta base y el 0,5% indica que sí consume. En general, el consumo de pasta base es muy bajo en ambos grupos, aunque se observa una proporción levemente mayor entre quienes consumen alcohol.
+
 
 Consumo de tusi según consumo de alcohol
 
 ```{r}
 
+# Variable solo para el gráfico 
+
+ENPG_filtrado <- ENPG_filtrado %>%
+  mutate(
+    tus_raw = str_to_lower(str_squish(as.character(Consumo_tus))),
+    Consumo_tus_plot = case_when(
+      tus_raw %in% c("sí","si","s","1","true","verdadero") ~ "Sí",
+      tus_raw %in% c("no","n","0","2","false","falso")     ~ "No",
+      str_detect(tus_raw, "^(sí|si)\\b")                   ~ "Sí",
+      str_detect(tus_raw, "^no\\b")                        ~ "No",
+      TRUE ~ NA_character_
+    ),
+    Consumo_tus_plot = factor(Consumo_tus_plot, levels = c("Sí", "No"))
+  )
+
+# Chequeo
+
+ENPG_filtrado %>% count(Consumo_tus_plot, sort = TRUE)
+
+# Datos para gráfico: 100% apilado dentro de cada barra
+
+df_tusi <- ENPG_filtrado %>%
+  filter(!is.na(alcohol_30d_plot), !is.na(Consumo_tus_plot)) %>%
+  count(alcohol_30d_plot, Consumo_tus_plot, name = "Conteo") %>%
+  complete(alcohol_30d_plot, Consumo_tus_plot, fill = list(Conteo = 0)) %>%
+  group_by(alcohol_30d_plot) %>%
+  mutate(
+    Total = sum(Conteo),
+    Prop  = ifelse(Total == 0, 0, Conteo / Total),
+    label_pct = ifelse(Conteo == 0, "", percent(Prop, accuracy = 0.1)),
+    text = paste0(
+      "Consumo alcohol: ", alcohol_30d_plot,
+      "<br>Consumo tusi: ", Consumo_tus_plot,
+      "<br>Porcentaje: ", percent(Prop, accuracy = 0.1),
+      "<br>n: ", Conteo
+    )
+  ) %>%
+  ungroup()
+
+# Chequeo
+
+df_tusi %>% group_by(alcohol_30d_plot) %>% summarise(suma_prop = sum(Prop))
+
+# Gráfico: siempre suma 100%
+
+Grafico_tusi <- ggplot(df_tusi, aes(y = alcohol_30d_plot, x = Conteo, fill = Consumo_tus_plot, text = text)) +
+  geom_col(position = "fill", color = "black", width = 0.65) +
+  geom_text(
+    aes(label = label_pct),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    size = 3
+  ) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), expand = c(0, 0)) +
+  labs(
+    title = "Consumo de tusi según consumo de alcohol (últimos 30 días)",
+    x = "Porcentaje",
+    y = NULL,
+    fill = "Consumo de tusi"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplotly(Grafico_tusi, tooltip = "text")
+
+
 ```
 
-Salud general según consumo de alcohol
+En el grupo de personas que no consume alcohol en los últimos 30 días, prácticamente la totalidad declara no consumir tusi (100,0%), mientras que el consumo aparece como 0,0%.
+
+Por su parte, entre quienes sí consumen alcohol, el 99,8% señala no consumir tusi y el 0,2% indica que sí consume. En general, el consumo de tusi es muy bajo en ambos grupos, observándose una presencia levemente mayor entre quienes consumen alcohol.
+
+
+Salud general y mental según consumo de alcohol (I)
 
 ```{r}
 
-```
+# Etiquetas para las variables
+labels_vars <- c(
+  "salud_general" = "Percepción de estado de salud general",
+  "sm_sueno" = "¿Sus preocupaciones le han hecho perder mucho sueño?",
+  "sm_agobiado" = "¿Se ha sentido constantemente agobiado/a o en tensión?",
+  "sm_frustracion" = "¿Ha sentido que no puede superar sus dificultades?",
+  "sm_depresion" = "¿Se ha sentido poco feliz y deprimido/a?",
+  "sm_confianza" = "¿Ha perdido confianza en sí mismo/a?",
+  "sm_valía_moral" = "¿Ha pensado que usted es una persona que no vale para nada?"
+)
 
-Salud mental según consumo de alcohol
+# Orden 
+orden_vars <- c(
+  "salud_general",
+  "sm_sueno",
+  "sm_agobiado",
+  "sm_frustracion",
+  "sm_depresion",
+  "sm_confianza",
+  "sm_valía_moral"
+)
+
+
+# Media, DE, Mediana y N° por grupo 
+
+descriptivos_sm_alcohol <- ENPG_filtrado %>%
+  select(alcohol_30d, salud_general, starts_with("sm_")) %>%
+  pivot_longer(
+    cols = c(salud_general, starts_with("sm_")),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>%
+  mutate(
+    Variable = factor(Variable, levels = orden_vars),
+    Etiqueta = recode(as.character(Variable), !!!labels_vars)
+  ) %>%
+  group_by(alcohol_30d, Etiqueta) %>%
+  summarise(
+    N = sum(!is.na(Valor)),
+    Media = mean(Valor, na.rm = TRUE),
+    DE = sd(Valor, na.rm = TRUE),
+    Mediana = median(Valor, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+descriptivos_sm_alcohol
+
+
+# Tabla comparativa 
+
+tabla_sm_alcohol <- descriptivos_sm_alcohol %>%
+  pivot_wider(
+    names_from = alcohol_30d,
+    values_from = c(Media, DE, N),
+    names_glue = "{.value}_{alcohol_30d}"
+  )
+
+tabla_sm_alcohol
+
+
+# Gráfico de medias (incluye ST_1 + etiquetas bonitas)
+
+ENPG_filtrado %>%
+  select(alcohol_30d, salud_general, starts_with("sm_")) %>%
+  pivot_longer(
+    cols = c(salud_general, starts_with("sm_")),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>%
+  filter(!is.na(alcohol_30d), !is.na(Valor)) %>%
+  mutate(
+    Variable = factor(Variable, levels = orden_vars),
+    Variable_lab = recode(as.character(Variable), !!!labels_vars)
+  ) %>%
+  group_by(alcohol_30d, Variable_lab) %>%
+  summarise(
+    Media = mean(Valor, na.rm = TRUE),
+    SD = sd(Valor, na.rm = TRUE),
+    N = n(),
+    SE = SD / sqrt(N),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = Variable_lab, y = Media, fill = alcohol_30d)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(
+    aes(ymin = Media - 1.96 * SE, ymax = Media + 1.96 * SE),
+    position = position_dodge(width = 0.7),
+    width = 0.2
+  ) +
+  coord_flip() +
+  labs(
+    title = "Salud mental y salud general según consumo de alcohol (últimos 30 días)",
+    subtitle = "Media e intervalo de confianza 95%",
+    x = "",
+    y = "Media",
+    fill = "Consumo de alcohol"
+  ) +
+  theme_minimal()
+
+
+```
+En el gráfico de medias con intervalo de confianza al 95% se observa que, al comparar a quienes sí consumen alcohol versus quienes no consumen, las diferencias tienden a ser más bien acotadas en la mayoría de los indicadores.
+
+En percepción de estado de salud general, el grupo que sí consume alcohol presenta una media levemente más alta que el grupo que no consume. En los ítems de salud mental, se aprecia un patrón mixto: quienes sí consumen alcohol muestran promedios algo mayores en indicadores como pérdida de sueño por preocupaciones y sentirse agobiado/a o en tensión, mientras que en otros (como sentirse poco feliz y deprimido/a, sentir que no puede superar sus dificultades, haber perdido confianza en sí mismo/a y pensar que no vale para nada) las medias aparecen ligeramente más altas entre quienes no consumen alcohol.
+
+En términos generales, los intervalos de confianza se superponen en la mayoría de las variables, lo que sugiere que las diferencias observadas entre grupos son pequeñas, más que brechas amplias en salud mental o salud general asociadas al consumo de alcohol.
+
+
+
+Salud general y mental según consumo de alcohol (II)
 
 ```{r}
 # Media, Desviación Estandar y N° por grupo
@@ -572,6 +1494,198 @@ ENPG_filtrado %>%
   theme_minimal()
 ```
 
+Percepción de riesgo según consumo de alcohol
+
+```{r}
+
+
+# Media, Desviación Estandar y N° por grupo
+
+descriptivos_riesgo_alcohol <- ENPG_filtrado %>% 
+  select(alcohol_30d, Riesgo_ocasion, Riesgo_diario) %>% 
+  pivot_longer(
+    cols = c(Riesgo_ocasion, Riesgo_diario),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>% 
+  group_by(alcohol_30d, Variable) %>% 
+  summarise(
+    N = sum(!is.na(Valor)),
+    Media = mean(Valor, na.rm = TRUE),
+    DE = sd(Valor, na.rm = TRUE),
+    Mediana = median(Valor, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+descriptivos_riesgo_alcohol
+
+
+# Tabla comparativa
+
+tabla_riesgo_alcohol <- descriptivos_riesgo_alcohol %>% 
+  pivot_wider(
+    names_from = alcohol_30d,
+    values_from = c(Media, DE, N),
+    names_glue = "{.value}_{alcohol_30d}"
+  )
+
+tabla_riesgo_alcohol
+
+
+# Gráfico de medias 
+
+ENPG_filtrado %>% 
+  select(alcohol_30d, Riesgo_ocasion, Riesgo_diario) %>% 
+  pivot_longer(
+    cols = c(Riesgo_ocasion, Riesgo_diario),
+    names_to = "Variable",
+    values_to = "Valor"
+  ) %>% 
+  filter(!is.na(alcohol_30d), !is.na(Valor)) %>% 
+  mutate(
+    Variable = factor(
+      Variable,
+      levels = c("Riesgo_ocasion", "Riesgo_diario"),
+      labels = c(
+        "Toma tres o más tragos por ocasión",
+        "Toma cinco o más tragos diariamente"
+      )
+    )
+  ) %>%
+  group_by(alcohol_30d, Variable) %>% 
+  summarise(
+    Media = mean(Valor, na.rm = TRUE),
+    SD = sd(Valor, na.rm = TRUE),
+    N = n(),
+    SE = SD / sqrt(N),
+    .groups = "drop"
+  ) %>% 
+  ggplot(aes(x = Variable, y = Media, fill = alcohol_30d)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(
+    aes(ymin = Media - 1.96 * SE, ymax = Media + 1.96 * SE),
+    position = position_dodge(width = 0.7),
+    width = 0.2
+  ) +
+  coord_flip() +
+  labs(
+    title = "Percepción de riesgo según consumo de alcohol (últimos 30 días)",
+    subtitle = "Media e intervalo de confianza 95%",
+    x = "",
+    y = "Media",
+    fill = "Consumo de alcohol"
+  ) +
+  theme_minimal()
+
+
+```
+En el gráfico de percepción de riesgo (media e intervalo de confianza al 95%) se observan diferencias claras según consumo de alcohol en los últimos 30 días. En ambos indicadores —“toma tres o más tragos por ocasión” y “toma cinco o más tragos diariamente”—, las personas que no consumen alcohol presentan medias más altas de percepción de riesgo que quienes sí consumen.
+
+En particular, para toma tres o más tragos por ocasión, el grupo que no consume se ubica cerca de 5 puntos, mientras que el grupo que sí consume se ubica alrededor de 4 puntos. Un patrón similar se observa en toma cinco o más tragos diariamente, donde nuevamente la percepción de riesgo es mayor entre quienes no consumen alcohol.
+
+Además, los intervalos de confianza de ambos grupos aparecen con poca superposición, lo que sugiere que estas diferencias no serían solo pequeñas variaciones, sino que podrían reflejar una brecha consistente en la percepción de riesgo: quienes consumen alcohol tienden a normalizar o percibir como menos riesgoso el consumo intensivo (por ocasión o diario), en comparación con quienes no consumen.
+
+
+Correlaciones de variables cuantitativas
+
+```{r}
+
+# Armar base para correlaciones + NA codes
+
+df_cor <- ENPG_filtrado %>%
+  transmute(
+    Riesgo_ocasion = as.numeric(na_if(Riesgo_ocasion, 88)),              
+    Riesgo_diario  = as.numeric(na_if(Riesgo_diario, 88)),                
+    salud_general  = as.numeric(ifelse(salud_general %in% c(88, 99), NA, salud_general)), 
+
+    sm_sueno       = as.numeric(sm_sueno),
+    sm_agobiado    = as.numeric(sm_agobiado),
+    sm_frustracion = as.numeric(sm_frustracion),
+    sm_depresion   = as.numeric(sm_depresion),
+    sm_confianza   = as.numeric(sm_confianza),
+    sm_valia_moral = as.numeric(`sm_valía_moral`)  
+  )
+
+
+# 2Correlaciones Spearman + p-values + N
+
+res <- Hmisc::rcorr(as.matrix(df_cor), type = "spearman")
+mat_cor <- res$r
+mat_p   <- res$P
+mat_n   <- res$n
+
+
+# Preparar datos para heatmap + etiquetas
+
+labels_vars <- c(
+  Riesgo_ocasion = "Riesgo: 3+ tragos por ocasión",
+  Riesgo_diario  = "Riesgo: 5+ tragos diariamente",
+  salud_general  = "Percepción de salud general",
+  sm_sueno       = "Pierde sueño por preocupaciones",
+  sm_agobiado    = "Se siente agobiado/a o en tensión",
+  sm_frustracion = "No puede superar dificultades",
+  sm_depresion   = "Poco feliz y deprimido/a",
+  sm_confianza   = "Pierde confianza en sí mismo/a",
+  sm_valia_moral = "Siente que no vale nada"
+)
+
+df_heat <- as.data.frame(mat_cor) %>%
+  rownames_to_column("Var1") %>%
+  pivot_longer(-Var1, names_to = "Var2", values_to = "r") %>%
+  left_join(
+    as.data.frame(mat_p) %>%
+      rownames_to_column("Var1") %>%
+      pivot_longer(-Var1, names_to = "Var2", values_to = "p"),
+    by = c("Var1", "Var2")
+  ) %>%
+  left_join(
+    as.data.frame(mat_n) %>%
+      rownames_to_column("Var1") %>%
+      pivot_longer(-Var1, names_to = "Var2", values_to = "n"),
+    by = c("Var1", "Var2")
+  ) %>%
+  mutate(
+    Var1_lab = recode(Var1, !!!labels_vars),
+    Var2_lab = recode(Var2, !!!labels_vars),
+    sig = case_when(
+      is.na(p) ~ "",
+      p < 0.001 ~ "***",
+      p < 0.01  ~ "**",
+      p < 0.05  ~ "*",
+      TRUE ~ ""
+    )
+  )
+
+# Heatmap 
+
+p <- ggplot(df_heat, aes(x = Var2_lab, y = Var1_lab, fill = r)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.2f%s", r, sig)), size = 2) +
+  scale_fill_gradient2(limits = c(-1, 1), midpoint = 0, name = "Spearman ρ") +
+  coord_fixed() +
+  labs(
+    title = "Matriz de correlaciones (Spearman)",
+    subtitle = "Likert/ordinal. *** p<0.001, ** p<0.01, * p<0.05",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5)
+  )
+
+# Mostrar en pantalla
+p
+
+# Guardar en PNG grande 
+ggsave("matriz_correlaciones_spearman.png", p, width = 14, height = 10, dpi = 300)
+
+
+```
+
+La matriz de correlaciones muestra, en términos generales dos patrones. Por un lado, los indicadores de salud mental presentan correlaciones positivas de magnitud moderada a relativamente alta (en varios casos sobre 0,5), lo que sugiere que tienden a moverse en conjunto. Las asociaciones más fuertes se observan entre “pierde confianza en sí mismo/a” y “siente que no vale nada” (ρ≈0,69), entre “poco feliz y deprimido/a” y “pierde confianza” (ρ≈0,67), y entre “se siente agobiado/a o en tensión” y “pierde sueño por preocupaciones” (ρ≈0,64). Además, “no puede superar dificultades” se relaciona de manera consistente con el resto de los ítems (por ejemplo con “poco feliz y deprimido/a” ρ≈0,64 y con “pierde confianza” ρ≈0,62), lo que da cuenta de un bloque de malestar psicológico relativamente cohesionado.
+
+Por otro lado, las variables de percepción de riesgo (tanto “toma 3+ tragos por ocasión” como “toma 5+ diariamente”) muestran correlaciones muy bajas con los indicadores de salud mental y con salud general (valores cercanos a 0; aunque algunas aparecen significativas, su magnitud es mínima). Entre ellas sí se observa una asociación positiva baja (ρ≈0,33) entre ambos ítems de riesgo, lo que indica que capturan dimensiones relacionadas, pero no idénticas. Finalmente, la percepción de salud general se asocia de forma débil con los ítems de salud mental (aprox. ρ≈0,15 a 0,27), lo que sugiere relación, pero de baja intensidad.
 
 
 
