@@ -78,14 +78,17 @@ ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta")
 ## Selección de Variables
 
 ```{r}
-ENPG_filtrado <- ENPG_2024 %>%
-select(RESPONDENT_SERIAL, EDAD, SEXO,
-OH_1, OH_4,
-DP_4, DP_5, DP_12,
-MAR_1, MAR_4,
-ST_2, ST_5,
-T_PR_1_2,
-T_SG_1_E)
+ENPG_filtrado <- ENPG_2024 %>% 
+  select(
+    RESPONDENT_SERIAL, EDAD, SEXO, OH_1, OH_2, OH_4,
+    DP_4, DP_5, DP_8, DP_12, DP_16, DP_2,
+    MAR_1, MAR_4, PB_1, PB_4, COC_1, COC_4,
+    TUS_1, TUS_4,
+    ST_1, ST_2, ST_5,
+    T_SG_1_B, T_SG_1_E, T_SG_1_F, T_SG_1_I, T_SG_1_J, T_SG_1_K,
+    T_PR_1_2, T_PR_1_3,
+    CO_1, CO_6
+  ) %>% na.omit()
 ```
 
 ------------------------------------------------------------------------
@@ -159,7 +162,8 @@ title = "Consumo de alcohol según género",
 x = "",
 y = "Proporción"
 ) +
-theme_minimal()
+theme_minimal() %>% 
+  na.omit()
 
 ```
 
@@ -199,7 +203,8 @@ title = "Consumo de alcohol según consumo de marihuana",
 x = "",
 y = "Proporción"
 ) +
-theme_minimal()
+theme_minimal() %>% 
+  na.omit()
 
 ```
 
@@ -219,7 +224,8 @@ title = "Consumo de alcohol según sensación de agobio",
 x = "Frecuencia de agobio",
 y = "Proporción"
 ) +
-theme_minimal()
+theme_minimal() %>% 
+  na.omit()
 
 ```
 
