@@ -398,8 +398,6 @@ c) Las personas que presentan mayor habitualidad en problemas de salud mental ti
 
 d) Las personas que presentan una menor percepción de riesgo asociada al consumo de alcohol tienden a mayor probabilidad de consumo de alcohol, en comparación con aquellas que perciben un mayor riesgo.
 
-e) En el modelo Random Forest, las variables asociadas a policonsumo, percepción de riesgo y salud mental concentrarán la mayor importancia predictiva, en comparación con las variables sociodemográficas por sí solas.
-
 7) Análisis descriptivo
 
 En primera instancia, se realizará un análisis descriptivo para caracterizar la distribución de las variables de interés y explorar su relación con el consumo de alcohol en los últimos 30 días, que corresponde a la variable principal del estudio. En particular, se examinará cómo se comportan las variables seleccionadas al comparar los grupos que reportan consumo reciente versus quienes no lo reportan.

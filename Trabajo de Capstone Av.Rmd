@@ -1493,6 +1493,10 @@ ENPG_filtrado %>%
   ) +
   theme_minimal()
 ```
+Los resultados descriptivos muestran diferencias consistentes en los indicadores de salud mental según el consumo de alcohol en los últimos 30 días. En general, las personas que reportan consumo de alcohol presentan medias ligeramente más altas en indicadores asociados a malestar emocional, como agobio y problemas de sueño, en comparación con quienes no han consumido alcohol. Por ejemplo, la media de agobio es mayor en el grupo que consumió alcohol (0,77) que en el grupo que no consumió (0,73), mientras que en el caso del sueño también se observa una media más elevada entre quienes consumieron alcohol (0,83 frente a 0,79). Estas diferencias, aunque de magnitud moderada, sugieren una posible asociación entre el consumo reciente de alcohol y una mayor presencia de dificultades en el bienestar psicológico.
+
+Por el contrario, en variables como confianza personal, depresión, frustración y valía moral, las personas que no consumieron alcohol tienden a presentar valores promedio ligeramente más favorables que quienes sí lo hicieron. En particular, la valía moral y la confianza muestran medias más bajas en el grupo con consumo de alcohol, lo que podría reflejar una percepción menos positiva de sí mismos en este grupo. El gráfico de medias con intervalos de confianza al 95% refuerza estas diferencias descriptivas, mostrando patrones relativamente consistentes entre ambos grupos. No obstante, estas diferencias deben interpretarse con cautela, ya que corresponden a un análisis descriptivo y no implican causalidad, además de verse afectadas por la presencia de valores perdidos en algunas variables.
+
 
 Percepción de riesgo según consumo de alcohol
 
@@ -1607,7 +1611,7 @@ df_cor <- ENPG_filtrado %>%
   )
 
 
-# 2Correlaciones Spearman + p-values + N
+# 10Correlaciones Spearman + p-values + N
 
 res <- Hmisc::rcorr(as.matrix(df_cor), type = "spearman")
 mat_cor <- res$r

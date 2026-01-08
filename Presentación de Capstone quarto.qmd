@@ -1,0 +1,479 @@
+---
+title: "Determinantes sociales, cognitivos y conductuales del consumo de alcohol"
+subtitle: "Análisis en población chilena"
+author:   
+- "Debora Garrido"
+- "Nelia Droguett"
+- "Nicolás Marchant"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: fade
+    center: false
+    incremental: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Introducción
+
+### Contexto
+
+-   El consumo de alcohol constituye un problema relevante de salud pública\
+-   Asociado a mortalidad, morbilidad y altos costos sociales\
+-   En Chile presenta desigualdades sociodemográficas y patrones de policonsumo
+
+------------------------------------------------------------------------
+
+## Objetivo
+
+### Objetivo general
+
+Estimar el efecto de factores **sociodemográficos**, **policonsumo**, **salud mental** y **percepción de riesgo** sobre la probabilidad de consumo de alcohol en los últimos 30 días en Chile.
+
+------------------------------------------------------------------------
+
+## Metodología
+
+::: columns
+::: {.column width="50%"}
+**Datos** - Estudio Nacional de Drogas en Población General 2024\
+- Diseño transversal\
+- Representatividad nacional
+:::
+
+::: {.column width="50%"}
+**Análisis** - Limpieza y recodificación\
+- Análisis descriptivo\
+- Regresión logística\
+- Curva ROC y Random Forest
+:::
+:::
+
+------------------------------------------------------------------------
+
+## Carga de datos
+
+```{r}
+library(dplyr)
+library(rio)
+library(ggplot2)
+library(skimr)
+library(forcats)
+library(scales)
+library(pROC)
+library(randomForest)
+
+set.seed(123)
+
+ENPG_2024 <- import("Base Publica ENPG 2024 (Stata 16).dta")
+
+```
+
+------------------------------------------------------------------------
+
+## Selección de Variables
+
+```{r}
+ENPG_filtrado <- ENPG_2024 %>%
+select(RESPONDENT_SERIAL, EDAD, SEXO,
+OH_1, OH_4,
+DP_4, DP_5, DP_12,
+MAR_1, MAR_4,
+ST_2, ST_5,
+T_PR_1_2,
+T_SG_1_E)
+```
+
+------------------------------------------------------------------------
+
+## Variable dependiente
+
+### Consumo de alcohol últimos 30 días
+
+```{r}
+ENPG_filtrado <- ENPG_filtrado %>%
+mutate(
+alcohol_30d = case_when(
+OH_1 == 2 ~ 0,
+OH_4 == 1 ~ 1,
+OH_4 %in% c(2,3) ~ 0
+),
+alcohol_30d = factor(
+alcohol_30d,
+levels = c(0,1),
+labels = c("No","Sí")
+)
+)
+
+table(ENPG_filtrado$alcohol_30d)
+
+```
+
+------------------------------------------------------------------------
+
+### Prevalencia de consumo
+
+```{r, echo=FALSE}
+ggplot(ENPG_filtrado, aes(alcohol_30d)) +
+geom_bar() +
+labs(
+title = "Consumo de alcohol en los últimos 30 días",
+x = "",
+y = "Frecuencia"
+) +
+theme_minimal()
+
+```
+
+------------------------------------------------------------------------
+
+## Variables sociodemográficas
+
+### Género
+
+```{r}
+ENPG_filtrado <- ENPG_filtrado %>%
+mutate(
+genero = case_when(
+SEXO == 1 ~ "Masculino",
+SEXO %in% c(2:6, 99) ~ "Otro género"
+),
+genero = factor(genero)
+)
+```
+
+------------------------------------------------------------------------
+
+### Consumo según género
+
+```{r, echo=FALSE}
+ggplot(ENPG_filtrado, aes(genero, fill = alcohol_30d)) +
+geom_bar(position = "fill") +
+scale_y_continuous(labels = percent) +
+labs(
+title = "Consumo de alcohol según género",
+x = "",
+y = "Proporción"
+) +
+theme_minimal()
+
+```
+
+------------------------------------------------------------------------
+
+## Policonsumo
+
+### Consumo de marihuana últimos 30 días
+
+```{r}
+ENPG_filtrado <- ENPG_filtrado %>%
+mutate(
+Consumo_mar = case_when(
+MAR_1 == 2 ~ 0,
+MAR_4 == 1 ~ 1,
+MAR_4 %in% c(2,3) ~ 0
+),
+Consumo_mar = factor(
+Consumo_mar,
+levels = c(0,1),
+labels = c("No","Sí")
+)
+)
+
+```
+
+------------------------------------------------------------------------
+
+### Alcohol y marihuana
+
+```{r, echo=FALSE}
+ggplot(ENPG_filtrado, aes(Consumo_mar, fill = alcohol_30d)) +
+geom_bar(position = "fill") +
+scale_y_continuous(labels = percent) +
+labs(
+title = "Consumo de alcohol según consumo de marihuana",
+x = "",
+y = "Proporción"
+) +
+theme_minimal()
+
+```
+
+------------------------------------------------------------------------
+
+## Salud mental
+
+### Sensación de agobio
+
+```{r, echo=FALSE}
+
+ggplot(ENPG_filtrado, aes(T_SG_1_E, fill = alcohol_30d)) +
+geom_bar(position = "fill") +
+scale_y_continuous(labels = percent) +
+labs(
+title = "Consumo de alcohol según sensación de agobio",
+x = "Frecuencia de agobio",
+y = "Proporción"
+) +
+theme_minimal()
+
+```
+
+------------------------------------------------------------------------
+
+### Percepción de riesgo
+
+```{r}
+ENPG_filtrado <- ENPG_filtrado %>%
+mutate(
+riesgo_ocasion = case_when(
+T_PR_1_2 == 88 ~ NA_real_,
+TRUE ~ T_PR_1_2
+)
+)
+
+
+```
+
+------------------------------------------------------------------------
+
+## Interpretación del modelo
+
+-   Género masculino presenta mayor probabilidad de consumo
+
+-   El policonsumo de marihuana es el predictor más fuerte
+
+-   Menor percepción de riesgo se asocia a mayor consumo
+
+-   La salud mental presenta efectos heterogéneos
+
+------------------------------------------------------------------------
+
+## Curva ROC de modelo LOGIT
+
+```{r, echo=FALSE}
+## Base Logit
+
+base_logit <- ENPG_filtrado %>%
+select(
+alcohol_30d,
+genero,
+Consumo_mar,
+T_SG_1_E,
+riesgo_ocasion
+)
+
+## Eliminar NA
+
+base_logit <- na.omit(base_logit)
+
+
+## Modelo Logit
+
+modelo_logit <- glm(
+alcohol_30d ~ genero + Consumo_mar + T_SG_1_E + riesgo_ocasion,
+data = base_logit,
+family = binomial(link = "logit")
+)
+
+## Probabilidades predichas
+
+probabilidades <- predict(
+modelo_logit,
+type = "response"
+)
+
+## Curva ROC
+
+roc_logit <- roc(
+response = base_logit$alcohol_30d,
+predictor = probabilidades,
+levels = c("No", "Sí"),
+direction = "<"
+)
+
+## Gráfico
+
+plot(
+roc_logit,
+main = "Curva ROC – Modelo Logit",
+lwd = 2
+)
+
+abline(a = 0, b = 1, lty = 2, col = "gray")
+
+```
+
+------------------------------------------------------------------------
+
+## Random Forest
+
+```{r, echo=FALSE}
+# Base limpia para Random Forest
+
+base_rf <- ENPG_filtrado %>%
+select(
+alcohol_30d,
+genero,
+Consumo_mar,
+T_SG_1_E,
+riesgo_ocasion
+)
+
+# Eliminar NA
+
+base_rf <- na.omit(base_rf)
+
+# Random Forest
+
+rf_model <- randomForest(
+alcohol_30d ~ genero + Consumo_mar + T_SG_1_E + riesgo_ocasion,
+data = base_rf,
+importance = TRUE
+)
+
+# Gráfico de importancia
+
+varImpPlot(
+rf_model,
+main = "Importancia de variables – Random Forest"
+)
+
+```
+
+------------------------------------------------------------------------
+
+## Curva ROC de Random Forest
+
+```{r, echo=FALSE}
+# Probabilidades predichas (MISMA base del modelo)
+
+prob_rf <- predict(
+rf_model,
+newdata = base_rf,
+type = "prob"
+)
+
+# Probabilidad clase positiva ("Sí")
+
+prob_rf_si <- prob_rf[, "Sí"]
+
+# Curva ROC
+
+roc_rf <- roc(
+response = base_rf$alcohol_30d,
+predictor = prob_rf_si,
+levels = c("No", "Sí"),
+direction = "<"
+)
+
+# Gráfico
+
+plot(
+roc_rf,
+main = "Curva ROC – Random Forest",
+lwd = 2
+)
+
+abline(a = 0, b = 1, lty = 2, col = "gray")
+
+
+## AUC del modelo Random Forest
+
+auc_rf <- auc(roc_rf)
+auc_rf
+
+
+## Gráfico AUC
+
+plot(
+  roc_rf,
+  main = paste0(
+    "Curva ROC – Random Forest (AUC = ",
+    round(auc_rf, 3),
+    ")"
+  ),
+  lwd = 2
+)
+
+abline(a = 0, b = 1, lty = 2, col = "gray")
+
+# Punto de corte 0.5
+
+coords_05_rf <- coords(
+roc_rf,
+x = 0.5,
+input = "threshold",
+ret = c("sensitivity", "specificity")
+)
+
+points(
+1 - coords_05_rf["specificity"],
+coords_05_rf["sensitivity"],
+pch = 19,
+cex = 1.3
+)
+
+text(
+1 - coords_05_rf["specificity"],
+coords_05_rf["sensitivity"],
+labels = "Cutoff = 0.5",
+pos = 4
+)
+```
+
+------------------------------------------------------------------------
+
+### Interpretación: La curva ROC del modelo Random Forest presenta un área bajo
+
+la curva (AUC) cercana a 0,71, lo que indica una capacidad de discriminación aceptable para diferenciar entre personas que consumieron y no consumieron alcohol en los últimos 30 días. El modelo destaca por una alta especificidad, identificando adecuadamente a los no consumidores, aunque presenta una sensibilidad moderada, lo que limita su capacidad para detectar a todos los consumidores reales. En este sentido, el Random Forest resulta especialmente útil para análisis exploratorios y para la identificación de patrones de riesgo, más que para la predicción individual directa del consumo.
+
+------------------------------------------------------------------------
+
+## Discusión
+
+-   El consumo de alcohol se integra en constelaciones de consumo
+
+-   La percepción de riesgo es un determinante central
+
+-   La salud mental no opera de forma lineal
+
+-   Los modelos explican más que predicen
+
+------------------------------------------------------------------------
+
+## Conclusiones
+
+El consumo de alcohol es un fenómeno multidimensional
+
+Policonsumo y percepción de riesgo son factores clave
+
+Relevancia para políticas públicas basadas en evidencia
+
+------------------------------------------------------------------------
+
+## Gracias
+
+------------------------------------------------------------------------
+
+## Referencias
+
+• Organización Panamericana de la Salud. (2015). Situación regional del consumo de alcohol y la salud en las Américas: Resumen del informe \[Hoja informativa\]. OPS. Organización Panamericana de la Salud
+
+• Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol. (2023). Décimo Cuarto Estudio Nacional de Drogas en Población Escolar de Chile 2021: 8º básico a 4º medio. Observatorio Chileno de Drogas, Ministerio del Interior y Seguridad Pública, Gobierno de Chile. SENDA
+
+------------------------------------------------------------------------
+
+## Referencias
+
+• Servicio Nacional para la Prevención y Rehabilitación del Consumo de Drogas y Alcohol (SENDA) & Ministerio de Salud (MINSAL). (2016). El consumo de alcohol en Chile: Situación epidemiológica.
+
+https://www.senda.gob.cl/wpcontent/uploads/media/estudios/otrosSENDA/2016_Consumo_Alcohol_Chile.pdf
+
+• Vilugrón, F., Molina, T., Gras Pérez, M. E., & Font-Mayolas, S. (2022). Precocidad de inicio del consumo de sustancias psicoactivas y su relación con otros comportamientos de riesgo para la salud en adolescentes chilenos. Revista Médica de Chile, 150, 584–596. Revista Médica de Chile
+
+
