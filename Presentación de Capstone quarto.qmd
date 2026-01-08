@@ -430,7 +430,7 @@ pos = 4
 
 ### Interpretación: La curva ROC del modelo Random Forest presenta un área bajo
 
-la curva (AUC) cercana a 0,71, lo que indica una capacidad de discriminación aceptable para diferenciar entre personas que consumieron y no consumieron alcohol en los últimos 30 días. El modelo destaca por una alta especificidad, identificando adecuadamente a los no consumidores, aunque presenta una sensibilidad moderada, lo que limita su capacidad para detectar a todos los consumidores reales. En este sentido, el Random Forest resulta especialmente útil para análisis exploratorios y para la identificación de patrones de riesgo, más que para la predicción individual directa del consumo.
+La curva (AUC) cercana a 0,571, lo que indica una capacidad de discriminación aceptable para diferenciar entre personas que consumieron y no consumieron alcohol en los últimos 30 días. El modelo destaca por una alta especificidad, identificando adecuadamente a los no consumidores, aunque presenta una sensibilidad moderada, lo que limita su capacidad para detectar a todos los consumidores reales. En este sentido, el Random Forest resulta especialmente útil para análisis exploratorios y para la identificación de patrones de riesgo, más que para la predicción individual directa del consumo.
 
 ------------------------------------------------------------------------
 
